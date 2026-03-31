@@ -161,6 +161,8 @@ function UsersPage() {
                                 <span className={`inline-flex items-center px-8 py-2 rounded text-[10px] font-bold uppercase tracking-wide border ${
                                     role === 'supervisor'
                                         ? 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-900/20 dark:text-violet-300 dark:border-violet-800'
+                                    : role === 'facilitator'
+                                        ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800'
                                         : 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-900/20 dark:text-sky-300 dark:border-sky-800'
                                 }`}>
                                     {role}
@@ -230,6 +232,7 @@ function UsersPage() {
                             <Select value={form.role} label="Role" onChange={e => setForm({ ...form, role: e.target.value })}>
                                 <MenuItem value="member">Member</MenuItem>
                                 <MenuItem value="supervisor">Supervisor</MenuItem>
+                                <MenuItem value="facilitator">Facilitator</MenuItem>
                             </Select>
                         </FormControl>
                     </div>

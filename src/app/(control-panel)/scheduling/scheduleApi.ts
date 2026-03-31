@@ -107,9 +107,14 @@ export interface InspectionReport {
     assigned_to_user_id: string;
     created_by_user_id: string;
     title: string;
+    rfwi_ref_no?: string;
+    location?: string;
+    gridline_zone?: string;
+    date_inspected?: string;
+    consultant_comments?: string;
     description?: string;
     file_path?: string;
-    status: 'pending' | 'completed';
+    status: 'approve' | 'approve with comment' | 'rejected' | 'standby' | 'pending' | 'completed' | 'failed';
     inspection_date: string;
     assigned_to_user?: User;
     created_by?: User;
@@ -187,4 +192,44 @@ export const updateMaintenanceReport = async (id: number, formData: FormData): P
 
 export const deleteMaintenanceReport = async (id: number): Promise<any> => {
     return api.delete(`maintenance-reports/${id}`).json();
+};
+export interface RiskAssessment {
+    id: number;
+    project_id: number;
+    created_by_user_id: string;
+    title: string;
+    type: 'fire' | 'hazard' | 'health' | 'security' | 'environmental' | 'other';
+    risk_level: 'low' | 'medium' | 'high' | 'extreme';
+    description?: string;
+    mitigation_plan?: string;
+    status: 'open' | 'in review' | 'mitigated' | 'closed';
+    assessment_date: string;
+    created_by?: User;
+    project?: any;
+    created_at: string;
+}
+
+export const fetchRiskAssessments = async (projectId: string): Promise<RiskAssessment[]> => {
+    return api.get('risk-assessments').json<RiskAssessment[]>();
+};
+
+export const useRiskAssessments = () => {
+    const { activeProjectId } = useProject();
+    return useQuery({
+        queryKey: ['risk-assessments', activeProjectId],
+        queryFn: () => fetchRiskAssessments(activeProjectId!.toString()),
+        enabled: !!activeProjectId,
+    });
+};
+
+export const createRiskAssessment = async (data: any): Promise<RiskAssessment> => {
+    return api.post('risk-assessments', { json: data }).json<RiskAssessment>();
+};
+
+export const updateRiskAssessment = async (id: number, data: any): Promise<RiskAssessment> => {
+    return api.put(`risk-assessments/${id}`, { json: data }).json<RiskAssessment>();
+};
+
+export const deleteRiskAssessment = async (id: number): Promise<any> => {
+    return api.delete(`risk-assessments/${id}`).json();
 };

@@ -51,7 +51,7 @@ const settingsConfig: FuseSettingsConfigType = {
 	 * To make the whole app accessible without authorization by default set defaultAuth: null
 	 * The individual route configs which have auth option won't be overridden.
 	 */
-	defaultAuth: ['supervisor', 'member'],
+	defaultAuth: ['supervisor', 'member', 'facilitator'],
 
 	/**
 	 * The loginRedirectUrl property defines the default redirect URL for the logged-in user.

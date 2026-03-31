@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Paper, Typography, Box, CircularProgress, Button, TextField, InputAdornment, Chip, Avatar, IconButton, Tooltip } from '@mui/material';
+import { Paper, Typography, Box, CircularProgress, Button, TextField, InputAdornment, Chip, Avatar, IconButton, Tooltip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import { useInspectionReports, InspectionReport } from '../../scheduling/scheduleApi';
 import InspectionReportDialog from './InspectionReportDialog';
@@ -14,17 +14,19 @@ function InspectionReportsWidget() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedReport, setSelectedReport] = useState<InspectionReport | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'completed'>('all');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'standby'>('all');
     const { data: user } = useUser();
 
     const isSupervisor = user?.role === 'supervisor' || (Array.isArray(user?.role) && user.role.includes('supervisor'));
 
     const stats = useMemo(() => {
-        if (!reports) return { total: 0, pending: 0, completed: 0 };
+        if (!reports) return { total: 0, pending: 0, approved: 0, rejected: 0, standby: 0 };
         return {
             total: reports.length,
             pending: reports.filter(r => r.status === 'pending').length,
-            completed: reports.filter(r => r.status === 'completed').length
+            approved: reports.filter(r => r.status === 'approve' || r.status === 'approve with comment' || r.status === 'completed').length,
+            rejected: reports.filter(r => r.status === 'rejected' || r.status === 'failed').length,
+            standby: reports.filter(r => r.status === 'standby').length
         };
     }, [reports]);
 
@@ -32,16 +34,29 @@ function InspectionReportsWidget() {
         if (!reports) return [];
         return reports.filter(report => {
             const matchesSearch = report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (report.assigned_to_user?.displayName || report.assigned_to_user?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesStatus = statusFilter === 'all' || report.status === statusFilter;
+                (report.location || '').toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesStatus = statusFilter === 'all' || 
+                (statusFilter === 'pending' && report.status === 'pending') ||
+                (statusFilter === 'approved' && (report.status === 'approve' || report.status === 'approve with comment' || report.status === 'completed')) ||
+                (statusFilter === 'rejected' && (report.status === 'rejected' || report.status === 'failed')) ||
+                (statusFilter === 'standby' && report.status === 'standby');
             return matchesSearch && matchesStatus;
         });
     }, [reports, searchQuery, statusFilter]);
 
     const getStatusStyles = (status: string) => {
         switch (status) {
-            case 'completed': return { bg: 'bg-green-50 dark:bg-green-900/20', text: 'text-green-600 dark:text-green-400', icon: 'heroicons-outline:check-circle' };
-            default: return { bg: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-600 dark:text-amber-400', icon: 'heroicons-outline:clock' };
+            case 'approve': 
+            case 'approve with comment':
+            case 'completed': 
+                return { bg: 'bg-green-50 dark:bg-green-900/20', text: 'text-green-600 dark:text-green-400', icon: 'heroicons-outline:check-circle' };
+            case 'rejected':
+            case 'failed':
+                return { bg: 'bg-red-50 dark:bg-red-900/20', text: 'text-red-600 dark:text-red-400', icon: 'heroicons-outline:x-circle' };
+            case 'standby':
+                return { bg: 'bg-gray-50 dark:bg-gray-900/20', text: 'text-gray-600 dark:text-gray-400', icon: 'heroicons-outline:pause-circle' };
+            default: 
+                return { bg: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-600 dark:text-amber-400', icon: 'heroicons-outline:clock' };
         }
     };
 
@@ -87,7 +102,8 @@ function InspectionReportsWidget() {
                 {[
                     { label: 'Total Reports', value: stats.total, color: 'blue', icon: 'heroicons-outline:document-text' },
                     { label: 'Pending', value: stats.pending, color: 'amber', icon: 'heroicons-outline:clock' },
-                    { label: 'Completed', value: stats.completed, color: 'green', icon: 'heroicons-outline:check-circle' }
+                    { label: 'Approved', value: stats.approved, color: 'green', icon: 'heroicons-outline:check-circle' },
+                    { label: 'Rejected', value: stats.rejected, color: 'red', icon: 'heroicons-outline:x-circle' }
                 ].map((stat) => (
                     <Paper key={stat.label} className="p-6 rounded-[32px] shadow-sm border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 flex items-center gap-5 hover:border-blue-200 transition-colors group cursor-default">
                         <Avatar className={`bg-${stat.color}-100 text-${stat.color}-600 dark:bg-${stat.color}-900/30 dark:text-${stat.color}-400 w-14 h-14 rounded-2xl group-hover:scale-110 transition-transform`}>
@@ -106,11 +122,11 @@ function InspectionReportsWidget() {
             {/* Toolbar Area */}
             <Box className="flex flex-col lg:flex-row items-center justify-between gap-6">
                 <Box className="flex items-center gap-3 p-1.5 bg-gray-50 dark:bg-gray-900 rounded-[20px] w-full lg:w-auto overflow-x-auto no-scrollbar">
-                    {(['all', 'pending', 'completed'] as const).map((status) => (
+                    {(['all', 'pending', 'approved', 'rejected', 'standby'] as const).map((status) => (
                         <Chip
                             key={status}
                             label={status.charAt(0).toUpperCase() + status.slice(1)}
-                            onClick={() => setStatusFilter(status)}
+                            onClick={() => setStatusFilter(status as any)}
                             className={`rounded-2xl font-black px-4 h-[40px] transition-all border-none ${
                                 statusFilter === status 
                                 ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-sm' 
@@ -141,7 +157,7 @@ function InspectionReportsWidget() {
                         sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' } }}
                     />
                     <TextField
-                        placeholder="Search by title or engineer..."
+                        placeholder="Search by title or location..."
                         size="small"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -158,80 +174,127 @@ function InspectionReportsWidget() {
                 </Box>
             </Box>
 
-            {/* Reports Grid */}
-            <Box className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                <AnimatePresence mode="popLayout">
-                    {filteredReports.map((report) => {
-                        const style = getStatusStyles(report.status);
-                        return (
-                            <motion.div
-                                key={report.id}
-                                layout
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                transition={{ duration: 0.2, ease: "easeOut" }}
-                            >
-                                <Paper className="relative overflow-hidden p-6 rounded-[40px] shadow-sm hover:shadow-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 transition-all group flex flex-col h-full ring-blue-500/0 hover:ring-2">
-                                    <Box className="flex justify-between items-start mb-5">
-                                        <Box className={`flex items-center gap-2 px-4 py-1.5 rounded-full ${style.bg} ${style.text}`}>
-                                            <FuseSvgIcon size={16}>{style.icon}</FuseSvgIcon>
-                                            <Typography variant="caption" className="font-black uppercase tracking-widest">{report.status}</Typography>
-                                        </Box>
-                                        <Box className="flex gap-2">
-                                            {report.file_path && (
-                                                <Tooltip title="View Report">
-                                                    <IconButton size="small" className="bg-gray-50 dark:bg-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            window.open(`${API_BASE_URL}/storage/${report.file_path}`, '_blank');
-                                                        }}
-                                                    >
-                                                        <FuseSvgIcon size={20}>heroicons-outline:document-arrow-down</FuseSvgIcon>
-                                                    </IconButton>
-                                                </Tooltip>
-                                            )}
-                                            <IconButton size="small" className="bg-gray-50 dark:bg-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors" onClick={() => { setSelectedReport(report); setDialogOpen(true); }}>
-                                                <FuseSvgIcon size={20}>heroicons-outline:pencil-square</FuseSvgIcon>
-                                            </IconButton>
-                                        </Box>
-                                    </Box>
-
-                                    <Typography variant="h6" className="font-black mb-3 line-clamp-1 text-gray-800 dark:text-gray-100 group-hover:text-blue-600 transition-colors">
-                                        {report.title}
-                                    </Typography>
-                                    
-                                    <Typography variant="body2" className="text-gray-500 dark:text-gray-400 mb-8 line-clamp-3 leading-relaxed">
-                                        {report.description || 'No detailed description available for this inspection report.'}
-                                    </Typography>
-
-                                    <Box className="mt-auto pt-6 border-t border-gray-100 dark:border-gray-700/50 flex flex-col gap-4">
-                                        <Box className="flex items-center justify-between">
-                                            <Box className="flex flex-col">
-                                                <Typography variant="caption" className="text-gray-400 font-bold uppercase tracking-tighter">Assigned To</Typography>
-                                                <Box className="flex items-center gap-2 mt-1">
-                                                    <Avatar className="w-7 h-7 text-[10px] font-black bg-blue-50 text-blue-600 border border-blue-100 ring-2 ring-white dark:ring-gray-800">
-                                                        {(report.assigned_to_user?.displayName || report.assigned_to_user?.name || '?')[0].toUpperCase()}
-                                                    </Avatar>
-                                                    <Typography variant="body2" className="font-black text-gray-700 dark:text-gray-300">
-                                                        {report.assigned_to_user?.displayName || report.assigned_to_user?.name || 'Unassigned'}
-                                                    </Typography>
-                                                </Box>
+            {/* Reports Table */}
+            <TableContainer component={Paper} className="rounded-[32px] shadow-sm border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 overflow-hidden">
+                <Table stickyHeader sx={{ minWidth: 1400 }}>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell sx={{ minWidth: 160 }} className="bg-gray-50/50 dark:bg-gray-900/50 font-black text-gray-500 uppercase tracking-widest text-[11px] py-6 px-8 border-b-none">Status</TableCell>
+                            <TableCell sx={{ minWidth: 250 }} className="bg-gray-50/50 dark:bg-gray-900/50 font-black text-gray-500 uppercase tracking-widest text-[11px] py-6 border-b-none">Title & Description</TableCell>
+                            <TableCell sx={{ minWidth: 180 }} className="bg-gray-50/50 dark:bg-gray-900/50 font-black text-gray-500 uppercase tracking-widest text-[11px] py-6 border-b-none">RFWI / Location</TableCell>
+                            <TableCell sx={{ minWidth: 140 }} className="bg-gray-50/50 dark:bg-gray-900/50 font-black text-gray-500 uppercase tracking-widest text-[11px] py-6 border-b-none">Gridline/Zone</TableCell>
+                            <TableCell sx={{ minWidth: 200 }} className="bg-gray-50/50 dark:bg-gray-900/50 font-black text-gray-500 uppercase tracking-widest text-[11px] py-6 border-b-none">Engineer</TableCell>
+                            <TableCell sx={{ minWidth: 220 }} className="bg-gray-50/50 dark:bg-gray-900/50 font-black text-gray-500 uppercase tracking-widest text-[11px] py-6 border-b-none text-right pr-12">Dates</TableCell>
+                            <TableCell sx={{ minWidth: 150 }} className="bg-gray-50/50 dark:bg-gray-900/50 font-black text-gray-500 uppercase tracking-widest text-[11px] py-6 px-10 border-b-none text-right sticky right-0 z-20 backdrop-blur-md">Actions</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        <AnimatePresence mode="popLayout">
+                            {filteredReports.map((report) => {
+                                const style = getStatusStyles(report.status);
+                                return (
+                                    <TableRow
+                                        key={report.id}
+                                        component={motion.tr}
+                                        layout
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors group cursor-pointer"
+                                        onClick={() => { setSelectedReport(report); setDialogOpen(true); }}
+                                    >
+                                        <TableCell className="py-6 px-8 border-gray-100 dark:border-gray-700/50">
+                                            <Box className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full ${style.bg} ${style.text}`}>
+                                                <FuseSvgIcon size={16}>{style.icon}</FuseSvgIcon>
+                                                <Typography variant="caption" className="font-black uppercase tracking-widest whitespace-nowrap">{report.status}</Typography>
                                             </Box>
-                                            <Box className="flex items-center gap-1.5 text-gray-400 bg-gray-50 dark:bg-gray-700/50 px-3 py-1.5 rounded-2xl">
-                                                <FuseSvgIcon size={16}>heroicons-outline:calendar</FuseSvgIcon>
-                                                <Typography variant="caption" className="font-black">
-                                                    {new Date(report.inspection_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                        </TableCell>
+                                        
+                                        <TableCell className="py-6 border-gray-100 dark:border-gray-700/50 max-w-[300px]">
+                                            <Typography variant="body1" className="font-black text-gray-800 dark:text-gray-100 group-hover:text-blue-600 transition-colors">
+                                                {report.title}
+                                            </Typography>
+                                            <Typography variant="caption" className="text-gray-400 font-medium line-clamp-1 mt-1">
+                                                {report.description || 'No description provided'}
+                                            </Typography>
+                                        </TableCell>
+
+                                        <TableCell className="py-6 border-gray-100 dark:border-gray-700/50">
+                                            <Box className="flex flex-col">
+                                                <Typography variant="body2" className="font-bold text-gray-700 dark:text-gray-300 uppercase tracking-tight">
+                                                    {report.rfwi_ref_no || '-'}
+                                                </Typography>
+                                                <Typography variant="caption" className="text-gray-400 font-bold uppercase tracking-tighter mt-1 flex items-center gap-1">
+                                                    <FuseSvgIcon size={12}>heroicons-outline:map-pin</FuseSvgIcon>
+                                                    {report.location || 'N/A'}
                                                 </Typography>
                                             </Box>
-                                        </Box>
-                                    </Box>
-                                </Paper>
-                            </motion.div>
-                        );
-                    })}
-                </AnimatePresence>
-            </Box>
+                                        </TableCell>
+
+                                        <TableCell className="py-6 border-gray-100 dark:border-gray-700/50">
+                                            <Chip 
+                                                label={report.gridline_zone || 'Not Set'}
+                                                size="small"
+                                                className="rounded-lg font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-none"
+                                            />
+                                        </TableCell>
+
+                                        <TableCell className="py-6 border-gray-100 dark:border-gray-700/50">
+                                            <Box className="flex items-center gap-3">
+                                                <Avatar className="w-8 h-8 text-[11px] font-black bg-blue-50 text-blue-600 border border-blue-100">
+                                                    {(report.assigned_to_user?.displayName || report.assigned_to_user?.name || '?')[0].toUpperCase()}
+                                                </Avatar>
+                                                <Box>
+                                                    <Typography variant="body2" className="font-black text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                                                        {report.assigned_to_user?.displayName || report.assigned_to_user?.name || 'Unassigned'}
+                                                    </Typography>
+                                                    <Typography variant="caption" className="text-gray-400 font-bold tracking-tighter">Site Engineer</Typography>
+                                                </Box>
+                                            </Box>
+                                        </TableCell>
+
+                                        <TableCell className="py-6 border-gray-100 dark:border-gray-700/50 text-right pr-12">
+                                            <Box className="flex flex-col gap-1 items-end">
+                                                <Typography variant="caption" className="flex items-center gap-1 text-gray-500 font-bold whitespace-nowrap">
+                                                    <FuseSvgIcon size={12} className="text-blue-500">heroicons-outline:calendar</FuseSvgIcon>
+                                                    Inspected: {report.date_inspected ? new Date(report.date_inspected).toLocaleDateString() : 'N/A'}
+                                                </Typography>
+                                                <Typography variant="caption" className="flex items-center gap-1 text-gray-400 font-medium whitespace-nowrap">
+                                                    <FuseSvgIcon size={12}>heroicons-outline:document-text</FuseSvgIcon>
+                                                    Submitted: {new Date(report.inspection_date).toLocaleDateString()}
+                                                </Typography>
+                                            </Box>
+                                        </TableCell>
+
+                                        <TableCell className="px-10 py-6 border-gray-100 dark:border-gray-700/50 text-right sticky right-0 bg-white dark:bg-gray-800 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors z-10 shadow-[-12px_0_15px_-4px_rgba(0,0,0,0.02)]">
+                                            <Box className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                                                {report.file_path && (
+                                                    <Tooltip title="View Report">
+                                                        <IconButton 
+                                                            size="small" 
+                                                            className="bg-gray-50 dark:bg-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors rounded-xl"
+                                                            onClick={() => window.open(`${API_BASE_URL}/storage/${report.file_path}`, '_blank')}
+                                                        >
+                                                            <FuseSvgIcon size={20}>heroicons-outline:document-arrow-down</FuseSvgIcon>
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                )}
+                                                <IconButton 
+                                                    size="small" 
+                                                    className="bg-gray-50 dark:bg-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors rounded-xl" 
+                                                    onClick={() => { setSelectedReport(report); setDialogOpen(true); }}
+                                                >
+                                                    <FuseSvgIcon size={20}>heroicons-outline:pencil-square</FuseSvgIcon>
+                                                </IconButton>
+                                            </Box>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
+                        </AnimatePresence>
+                    </TableBody>
+                </Table>
+            </TableContainer>
 
             {filteredReports.length === 0 && (
                 <Box className="flex flex-col items-center justify-center py-32 text-center animate-pulse">

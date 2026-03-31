@@ -7,6 +7,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, B
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingIcon from '@mui/icons-material/PendingActions';
+import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 
 function ListingObjectApp() {
     const { data: objects, isLoading } = useAllObjects();
@@ -38,7 +39,17 @@ function ListingObjectApp() {
             const system = row.system_type || '';
             const floorNum = row.zone?.floor?.floor_number || '';
 
-            if (statusFilter !== 'All' && status !== statusFilter) return false;
+            if (statusFilter !== 'All') {
+                if (statusFilter === 'Completed') {
+                    if (status !== 'Completed' && status !== 'Approved') return false;
+                } else if (statusFilter === 'Pending') {
+                    // Pending in list view usually means non-completed/non-finished
+                    if (['Completed', 'Approved', 'Finish'].includes(status)) return false;
+                } else if (status !== statusFilter) {
+                    return false;
+                }
+            }
+
             if (systemFilter !== 'All' && system.toLowerCase() !== systemFilter.toLowerCase()) return false;
             if (typeFilter !== 'All' && shapeType.toLowerCase() !== typeFilter.toLowerCase()) return false;
             if (floorFilter !== 'All' && floorNum !== floorFilter) return false;
@@ -64,22 +75,30 @@ function ListingObjectApp() {
 
     // KPI Metrics
     const totalObjectsCount = filteredObjects.length;
-    const completedObjectsCount = filteredObjects.filter(o => (o.latest_status?.current_status || 'Pending') === 'Completed').length;
-    const pendingObjectsCount = totalObjectsCount - completedObjectsCount;
+    const completedObjectsCount = filteredObjects.filter(o => {
+        const s = o.latest_status?.current_status;
+        return s === 'Completed' || s === 'Approved';
+    }).length;
+    const finishedObjectsCount = filteredObjects.filter(o => o.latest_status?.current_status === 'Finish').length;
+    const pendingObjectsCount = totalObjectsCount - completedObjectsCount - finishedObjectsCount;
 
     // Charts Data
     const statusCounts = useMemo(() => {
         const counts = filteredObjects.reduce((acc, obj) => {
-            const status = obj.latest_status?.current_status || 'Pending';
+            let status = obj.latest_status?.current_status || 'Pending';
+            // Group Approved into Completed for the chart to match BOQ Summary
+            if (status === 'Approved') status = 'Completed';
             acc[status] = (acc[status] || 0) + 1;
             return acc;
         }, {} as Record<string, number>);
 
         return Object.entries(counts).map(([name, value]) => {
-            let color = '#ef4444'; // Pending
+            let color = '#94a3b8'; // Default Slate (Pending)
             if (name === 'Completed') color = '#10b981';
+            else if (name === 'Finish') color = '#f59e0b';
             else if (name === 'Fix1') color = '#3b82f6';
             else if (name === 'Fix2') color = '#f59e0b';
+            else if (name === 'Pending') color = '#ef4444';
             return { name, value, color };
         });
     }, [filteredObjects]);
@@ -115,9 +134,9 @@ function ListingObjectApp() {
             <div className="p-6 w-full max-w-[1600px] mx-auto flex flex-col gap-6">
 
                 {/* KPI Widgets */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div>
-                        <Paper className="p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4 bg-gradient-to-br from-white to-blue-50/50 dark:from-gray-800 dark:to-gray-800/80 transform transition-transform hover:-translate-y-1">
+                        <Paper className="p-5 h-full rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4 bg-gradient-to-br from-white to-blue-50/50 dark:from-gray-800 dark:to-gray-800/80 transform transition-transform hover:-translate-y-1">
                             <div className="p-3 bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400 rounded-xl shadow-inner">
                                 <AssignmentIcon fontSize="large" />
                             </div>
@@ -130,7 +149,7 @@ function ListingObjectApp() {
                         </Paper>
                     </div>
                     <div>
-                        <Paper className="p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4 bg-gradient-to-br from-white to-emerald-50/50 dark:from-gray-800 dark:to-gray-800/80 transform transition-transform hover:-translate-y-1">
+                        <Paper className="p-5 h-full rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4 bg-gradient-to-br from-white to-emerald-50/50 dark:from-gray-800 dark:to-gray-800/80 transform transition-transform hover:-translate-y-1">
                             <div className="p-3 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400 rounded-xl shadow-inner">
                                 <CheckCircleIcon fontSize="large" />
                             </div>
@@ -143,13 +162,26 @@ function ListingObjectApp() {
                         </Paper>
                     </div>
                     <div>
-                        <Paper className="p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4 bg-gradient-to-br from-white to-amber-50/50 dark:from-gray-800 dark:to-gray-800/80 transform transition-transform hover:-translate-y-1">
+                        <Paper className="p-5 h-full rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4 bg-gradient-to-br from-white to-amber-50/50 dark:from-gray-800 dark:to-gray-800/80 transform transition-transform hover:-translate-y-1">
                             <div className="p-3 bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400 rounded-xl shadow-inner">
+                                <FuseSvgIcon size={32} className="text-amber-600">heroicons-outline:sparkles</FuseSvgIcon>
+                            </div>
+                            <div>
+                                <Typography variant="caption" className="font-bold text-gray-500 uppercase tracking-wider block mb-1">Work Finished</Typography>
+                                <Typography variant="h4" className="font-black text-amber-600 dark:text-amber-400">
+                                    {isLoading ? <CircularProgress size={20} /> : finishedObjectsCount.toLocaleString()}
+                                </Typography>
+                            </div>
+                        </Paper>
+                    </div>
+                    <div>
+                        <Paper className="p-5 h-full rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4 bg-gradient-to-br from-white to-slate-50/50 dark:from-gray-800 dark:to-gray-800/80 transform transition-transform hover:-translate-y-1">
+                            <div className="p-3 bg-slate-100 text-slate-500 dark:bg-slate-900/40 dark:text-slate-400 rounded-xl shadow-inner">
                                 <PendingIcon fontSize="large" />
                             </div>
                             <div>
                                 <Typography variant="caption" className="font-bold text-gray-500 uppercase tracking-wider block mb-1">Pending / Working</Typography>
-                                <Typography variant="h4" className="font-black text-amber-600 dark:text-amber-400">
+                                <Typography variant="h4" className="font-black text-slate-600 dark:text-slate-400">
                                     {isLoading ? <CircularProgress size={20} /> : pendingObjectsCount.toLocaleString()}
                                 </Typography>
                             </div>
@@ -268,7 +300,8 @@ function ListingObjectApp() {
                                     sx={{ height: 36, fontSize: '0.85rem', bgcolor: 'background.paper', borderRadius: 2 }}
                                 >
                                     <MenuItem value="All"><span className="text-sm font-semibold text-gray-700">All Statuses</span></MenuItem>
-                                    <MenuItem value="Completed"><span className="text-sm text-emerald-600 font-bold">Completed</span></MenuItem>
+                                    <MenuItem value="Completed"><span className="text-sm text-emerald-600 font-bold">Completed / Approved</span></MenuItem>
+                                    <MenuItem value="Finish"><span className="text-sm text-amber-600 font-bold">Finish</span></MenuItem>
                                     <MenuItem value="Pending"><span className="text-sm text-red-600 font-bold">Pending</span></MenuItem>
                                     <MenuItem value="Fix1"><span className="text-sm text-blue-600 font-bold">Fix1</span></MenuItem>
                                     <MenuItem value="Fix2"><span className="text-sm text-amber-600 font-bold">Fix2</span></MenuItem>
@@ -298,8 +331,8 @@ function ListingObjectApp() {
                                     let colorClass = 'bg-gray-100 text-gray-700';
                                     if (status === 'Pending') colorClass = 'bg-red-50 text-red-700 dark:bg-red-900/50 border border-red-200 dark:border-red-800';
                                     else if (status === 'Fix1') colorClass = 'bg-blue-50 text-blue-700 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800';
-                                    else if (status === 'Fix2') colorClass = 'bg-amber-50 text-amber-700 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800';
-                                    else if (status === 'Completed') colorClass = 'bg-emerald-50 text-emerald-700 dark:bg-green-900/50 border border-emerald-200 dark:border-emerald-800';
+                                    else if (status === 'Fix2' || status === 'Finish') colorClass = 'bg-amber-50 text-amber-700 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800';
+                                    else if (status === 'Completed' || status === 'Approved') colorClass = 'bg-emerald-50 text-emerald-700 dark:bg-green-900/50 border border-emerald-200 dark:border-emerald-800';
 
                                     const buildingStr = row.zone?.floor?.building?.name || 'N/A';
                                     const floorStr = row.zone?.floor?.floor_number ? `Level ${row.zone.floor.floor_number}` : 'N/A';

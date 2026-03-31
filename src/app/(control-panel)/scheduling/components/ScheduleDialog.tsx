@@ -22,7 +22,6 @@ const ScheduleDialog: React.FC<ScheduleDialogProps> = ({ open, onClose, initialD
     const [startDate, setStartDate] = useState('');
     const [startTime, setStartTime] = useState('');
     const [assignedToUserId, setAssignedToUserId] = useState<string>('');
-    const [assignedTeam, setAssignedTeam] = useState('');
 
     useEffect(() => {
         if (open) {
@@ -36,7 +35,6 @@ const ScheduleDialog: React.FC<ScheduleDialogProps> = ({ open, onClose, initialD
                 setStartDate(dPart);
                 setStartTime(tPart);
                 setAssignedToUserId(schedule.assigned_to_user_id || '');
-                setAssignedTeam(schedule.assigned_team || '');
             } else {
                 setTitle('');
                 setDescription('');
@@ -46,7 +44,6 @@ const ScheduleDialog: React.FC<ScheduleDialogProps> = ({ open, onClose, initialD
                 setStartDate(`${year}-${month}-${day}`);
                 setStartTime(initialDate.toTimeString().split(' ')[0].substring(0, 5));
                 setAssignedToUserId('');
-                setAssignedTeam('');
             }
         }
     }, [open, initialDate, schedule]);
@@ -74,7 +71,6 @@ const ScheduleDialog: React.FC<ScheduleDialogProps> = ({ open, onClose, initialD
             start_date: `${startDate} ${startTime}:00`,
             project_id: activeProjectId,
             assigned_to_user_id: assignedToUserId || null,
-            assigned_team: assignedTeam || null,
             status: schedule?.status || 'scheduled'
         };
 
@@ -162,42 +158,25 @@ const ScheduleDialog: React.FC<ScheduleDialogProps> = ({ open, onClose, initialD
                         />
                     </Box>
 
-                    <Box className="grid grid-cols-2 gap-4">
-                        <FormControl fullWidth size="small">
-                            <InputLabel>Assign Team</InputLabel>
-                            <Select
-                                value={assignedTeam}
-                                label="Assign Team"
-                                onChange={(e) => setAssignedTeam(e.target.value)}
-                                className="rounded-xl"
-                            >
-                                <MenuItem value=""><em>None</em></MenuItem>
-                                <MenuItem value="Electrical">Electrical Team</MenuItem>
-                                <MenuItem value="Structural">Structural Team</MenuItem>
-                                <MenuItem value="Management">Management</MenuItem>
-                            </Select>
-                        </FormControl>
-
-                        <FormControl fullWidth size="small">
-                            <InputLabel>Assign To User</InputLabel>
-                            <Select
-                                value={assignedToUserId}
-                                label="Assign To User"
-                                onChange={(e) => setAssignedToUserId(e.target.value as string)}
-                                className="rounded-xl"
-                            >
-                                <MenuItem value=""><em>Unassigned</em></MenuItem>
-                                {users.map((user) => (
-                                    <MenuItem key={user.id} value={user.id}>
-                                        <div className="flex flex-col">
-                                            <span className="font-bold text-xs">{user.name}</span>
-                                            <span className="text-[10px] text-gray-400">{user.email}</span>
-                                        </div>
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </Box>
+                    <FormControl fullWidth size="small">
+                        <InputLabel>Assign To User</InputLabel>
+                        <Select
+                            value={assignedToUserId}
+                            label="Assign To User"
+                            onChange={(e) => setAssignedToUserId(e.target.value as string)}
+                            className="rounded-xl"
+                        >
+                            <MenuItem value=""><em>Unassigned</em></MenuItem>
+                            {users.map((user) => (
+                                <MenuItem key={user.id} value={user.id}>
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-xs">{user.name}</span>
+                                        <span className="text-[10px] text-gray-400">{user.email}</span>
+                                    </div>
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
 
                     <Box className="mt-4">
                         <Button 

@@ -154,8 +154,9 @@ export const DetailedPlanSidebar: React.FC<DetailedPlanSidebarProps> = ({
                                 <Select value={formData.status} label="Status" onChange={e => setFormData({ ...formData, status: e.target.value })}>
                                     <MenuItem value="Fix1">Fix1 (Point Installation)</MenuItem>
                                     <MenuItem value="Fix2">Fix2 (Equipment)</MenuItem>
+                                    <MenuItem value="Finish">Work Finished</MenuItem>
                                     <MenuItem value="Pending">Pending (Environment)</MenuItem>
-                                    <MenuItem value="Completed">Completed</MenuItem>
+                                    <MenuItem value="Approved">Approved / Complete</MenuItem>
                                 </Select>
                             </FormControl>
 

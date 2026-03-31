@@ -11,6 +11,7 @@ import LeftSideLayout1 from './components/LeftSideLayout1';
 import NavbarWrapperLayout1 from './components/NavbarWrapperLayout1';
 import RightSideLayout1 from './components/RightSideLayout1';
 import ToolbarLayout1 from './components/ToolbarLayout1';
+import ChatWidget from 'src/app/components/chat/ChatWidget';
 
 const Root = styled('div')(({ config }: { config: Layout1ConfigDefaultsType }) => ({
 	...(config.mode === 'boxed' && {
@@ -88,6 +89,7 @@ function Layout1(props: Layout1Props) {
 			</div>
 
 			{config.rightSidePanel.display && <RightSideLayout1 />}
+			<ChatWidget />
 		</Root>
 	);
 }

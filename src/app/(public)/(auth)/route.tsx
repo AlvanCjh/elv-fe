@@ -3,6 +3,7 @@ import authRoles from '@auth/authRoles';
 import RoleSelectPageView from './components/views/RoleSelectPageView';
 import MemberSignInPageView from './components/views/MemberSignInPageView';
 import SupervisorSignInPageView from './components/views/SupervisorSignInPageView';
+import FacilitatorSignInPageView from './components/views/FacilitatorSignInPageView';
 import SignUpPageView from './components/views/SignUpPageView';
 import SignOutPageView from './components/views/SignOutPageView';
 
@@ -38,6 +39,13 @@ const route: FuseRouteItemType = {
         {
             path: 'sign-in/supervisor',
             element: <SupervisorSignInPageView />,
+            settings: noLayoutConfig,
+            auth: authRoles.onlyGuest
+        },
+        // Facilitator login
+        {
+            path: 'sign-in/facilitator',
+            element: <FacilitatorSignInPageView />,
             settings: noLayoutConfig,
             auth: authRoles.onlyGuest
         },

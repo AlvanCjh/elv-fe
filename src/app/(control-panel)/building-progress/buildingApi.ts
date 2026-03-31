@@ -120,7 +120,9 @@ export interface ObjectStatus {
     object_id: number;
     current_status: string;
     image_url?: string;
+    remarks?: string;
     created_at: string;
+    user?: { id: number; name: string; displayName?: string };
 }
 
 export interface ObjectPort {
@@ -147,6 +149,8 @@ export interface ObjectComponent {
     shape_type?: string;
     geometry?: any;
     latest_status?: ObjectStatus;
+    finish_status?: ObjectStatus;
+    approve_status?: ObjectStatus;
     ports?: ObjectPort[];
     zone?: any;
     user?: any;
@@ -256,4 +260,44 @@ export const deleteObject = async (id: number): Promise<any> => {
 
 export const createAnnotation = async (data: any): Promise<any> => {
     return api.post('annotations', { json: data }).json<any>();
+};
+
+// --- HISTORY AND AUDIT ---
+
+export type PinStatus = 'Fix1' | 'Fix2' | 'Pending' | 'Completed';
+export type ZoneCategory = 'BSS' | 'TEL' | 'PAM';
+
+export interface PendingHistory {
+    id: number;
+    floor_annotation_id: number;
+    name: string;
+    status: PinStatus;
+    remarks?: string;
+    base_location?: string;
+    created_at: string;
+    updated_at: string;
+    user?: {
+        name: string;
+    };
+    annotation?: {
+        id: number;
+        floor_id: number;
+        floor?: {
+            id: number;
+            building_id: number;
+            floor_number: string;
+        }
+    };
+}
+
+export const fetchPendingHistories = async (params: any): Promise<PendingHistory[]> => {
+    return api.get('pending-histories', { searchParams: params }).json<PendingHistory[]>();
+};
+
+export const usePendingHistories = (params: any) => {
+    return useQuery({
+        queryKey: ['pending-histories', params],
+        queryFn: () => fetchPendingHistories(params),
+        enabled: true,
+    });
 };

@@ -1,6 +1,6 @@
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { z } from 'zod';
 import _ from 'lodash';
 import TextField from '@mui/material/TextField';
@@ -9,6 +9,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import Link from '@fuse/core/Link';
 import Button from '@mui/material/Button';
+import Alert from '@mui/material/Alert';
 import useJwtAuth from '../useJwtAuth';
 import { useNavigate } from 'react-router';
 
@@ -32,9 +33,14 @@ const defaultValues: FormType = {
 	remember: true
 };
 
-function JwtSignInForm() {
-	const { signIn, isAuthenticated } = useJwtAuth();
+type JwtSignInFormProps = {
+    restrictedRole?: 'member' | 'supervisor' | 'facilitator';
+};
+
+function JwtSignInForm({ restrictedRole }: JwtSignInFormProps) {
+	const { signIn, signOut, isAuthenticated } = useJwtAuth();
 	const navigate = useNavigate();
+    const [globalError, setGlobalError] = useState<string | null>(null);
 
 	const { control, formState, handleSubmit, setValue, setError } = useForm<FormType>({
 		mode: 'onChange',
@@ -52,21 +58,37 @@ function JwtSignInForm() {
 
 	function onSubmit(formData: FormType) {
 		const { email, password } = formData;
+        setGlobalError(null);
 
 		signIn({
 			email,
 			password
 		})
-			.then(() => {
+			.then((session) => {
+                if (restrictedRole && session?.user) {
+                    const userRoles = Array.isArray(session.user.role) 
+                        ? session.user.role 
+                        : [session.user.role?.toString().toLowerCase()];
+                    
+                    const hasRequiredRole = userRoles.some(r => r?.toLowerCase() === restrictedRole.toLowerCase() || r?.toLowerCase() === 'admin');
+
+                    if (!hasRequiredRole) {
+                        signOut();
+                        setGlobalError(`Access Denied: You do not have the ${restrictedRole} privileges required to sign in here.`);
+                        return;
+                    }
+                }
 				navigate('/select-project');
 			})
 			.catch((error) => {
+                console.error("Login catch error:", error);
 				const errorData = error?.response?.data;
 
-				if (errorData?.message === 'Invalid Credentials') {
-					setError('email', { type: 'manual', message: 'Invalid email or password' });
-					setError('password', { type: 'manual', message: 'Invalid email or password' });
-				}
+				if (errorData?.message === 'Invalid Credentials' || error?.response?.status === 401) {
+					setGlobalError('Invalid email or password. Please try again.');
+				} else {
+                    setGlobalError(errorData?.message || 'An unexpected error occurred. Please try again later.');
+                }
 			});
 	}
 
@@ -77,6 +99,12 @@ function JwtSignInForm() {
 			className="flex w-full flex-col justify-center"
 			onSubmit={handleSubmit(onSubmit)}
 		>
+            {globalError && (
+                <Alert severity="error" className="mb-6 font-medium">
+                    {globalError}
+                </Alert>
+            )}
+
 			<Controller
 				name="email"
 				control={control}
@@ -144,7 +172,7 @@ function JwtSignInForm() {
 			<Button
 				variant="contained"
 				color="secondary"
-				className="mt-4 w-full"
+				className="mt-4 w-full h-12 rounded-lg font-bold uppercase transition-all shadow-md active:scale-95"
 				aria-label="Sign in"
 				disabled={_.isEmpty(dirtyFields) || !isValid}
 				type="submit"

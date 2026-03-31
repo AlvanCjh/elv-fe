@@ -40,10 +40,15 @@ function InspectionReportDialog({ open, onClose, report, initialDate }: Inspecti
 
     const [formData, setFormData] = useState({
         title: '',
+        rfwi_ref_no: '',
+        location: '',
+        gridline_zone: '',
+        date_inspected: new Date().toLocaleDateString('en-CA'),
+        consultant_comments: '',
         description: '',
         assigned_to_user_id: '',
-        inspection_date: new Date().toLocaleDateString('en-CA'), // YYYY-MM-DD
-        status: 'pending' as 'pending' | 'completed'
+        inspection_date: new Date().toLocaleDateString('en-CA'), // Submission Date
+        status: 'pending' as any
     });
 
     const [file, setFile] = useState<File | null>(null);
@@ -52,6 +57,11 @@ function InspectionReportDialog({ open, onClose, report, initialDate }: Inspecti
         if (report) {
             setFormData({
                 title: report.title,
+                rfwi_ref_no: report.rfwi_ref_no || '',
+                location: report.location || '',
+                gridline_zone: report.gridline_zone || '',
+                date_inspected: report.date_inspected || '',
+                consultant_comments: report.consultant_comments || '',
                 description: report.description || '',
                 assigned_to_user_id: report.assigned_to_user_id,
                 inspection_date: report.inspection_date,
@@ -60,6 +70,11 @@ function InspectionReportDialog({ open, onClose, report, initialDate }: Inspecti
         } else {
             setFormData({
                 title: '',
+                rfwi_ref_no: '',
+                location: '',
+                gridline_zone: '',
+                date_inspected: initialDate ? initialDate.toLocaleDateString('en-CA') : new Date().toLocaleDateString('en-CA'),
+                consultant_comments: '',
                 description: '',
                 assigned_to_user_id: '',
                 inspection_date: initialDate ? initialDate.toLocaleDateString('en-CA') : new Date().toLocaleDateString('en-CA'),
@@ -96,7 +111,13 @@ function InspectionReportDialog({ open, onClose, report, initialDate }: Inspecti
     const handleSubmit = () => {
         const data = new FormData();
         data.append('project_id', activeProjectId!.toString());
+        data.append('category', 'inspection'); // Added default category
         data.append('title', formData.title);
+        data.append('rfwi_ref_no', formData.rfwi_ref_no);
+        data.append('location', formData.location);
+        data.append('gridline_zone', formData.gridline_zone);
+        data.append('date_inspected', formData.date_inspected);
+        data.append('consultant_comments', formData.consultant_comments);
         data.append('description', formData.description);
         data.append('assigned_to_user_id', formData.assigned_to_user_id);
         data.append('inspection_date', formData.inspection_date);
@@ -143,6 +164,42 @@ function InspectionReportDialog({ open, onClose, report, initialDate }: Inspecti
                         required
                         disabled={!canEditBasicInfo}
                     />
+
+                    <Box className="grid grid-cols-2 gap-4">
+                        <TextField
+                            label="RFWI Ref No"
+                            value={formData.rfwi_ref_no}
+                            onChange={(e) => setFormData({ ...formData, rfwi_ref_no: e.target.value })}
+                            fullWidth
+                            disabled={!canEditBasicInfo}
+                        />
+                        <TextField
+                            label="Location"
+                            value={formData.location}
+                            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                            fullWidth
+                            disabled={!canEditBasicInfo}
+                        />
+                    </Box>
+
+                    <Box className="grid grid-cols-2 gap-4">
+                        <TextField
+                            label="Gridline/Zone"
+                            value={formData.gridline_zone}
+                            onChange={(e) => setFormData({ ...formData, gridline_zone: e.target.value })}
+                            fullWidth
+                            disabled={!canEditBasicInfo}
+                        />
+                        <TextField
+                            label="Date Inspected"
+                            type="date"
+                            value={formData.date_inspected}
+                            onChange={(e) => setFormData({ ...formData, date_inspected: e.target.value })}
+                            fullWidth
+                            InputLabelProps={{ shrink: true }}
+                            disabled={!canEditBasicInfo}
+                        />
+                    </Box>
                     
                     <TextField
                         label="Assigned Site Engineer"
@@ -161,7 +218,7 @@ function InspectionReportDialog({ open, onClose, report, initialDate }: Inspecti
                     </TextField>
 
                     <TextField
-                        label="Inspection Date"
+                        label="Submission Date"
                         type="date"
                         value={formData.inspection_date}
                         onChange={(e) => setFormData({ ...formData, inspection_date: e.target.value })}
@@ -170,19 +227,30 @@ function InspectionReportDialog({ open, onClose, report, initialDate }: Inspecti
                         disabled={!canEditBasicInfo}
                     />
 
-                    {report && (
-                        <TextField
-                            label="Status"
-                            select
-                            value={formData.status}
-                            onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                            fullWidth
-                            disabled={!canUpdateStatus}
-                        >
-                            <MenuItem value="pending">Pending</MenuItem>
-                            <MenuItem value="completed">Completed</MenuItem>
-                        </TextField>
-                    )}
+                    <TextField
+                        label="Status"
+                        select
+                        value={formData.status}
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                        fullWidth
+                        disabled={!canUpdateStatus}
+                    >
+                        <MenuItem value="pending">Pending</MenuItem>
+                        <MenuItem value="approve">Approve</MenuItem>
+                        <MenuItem value="approve with comment">Approve with Comment</MenuItem>
+                        <MenuItem value="rejected">Rejected</MenuItem>
+                        <MenuItem value="standby">Standby</MenuItem>
+                    </TextField>
+
+                    <TextField
+                        label="Consultant Comments"
+                        value={formData.consultant_comments}
+                        onChange={(e) => setFormData({ ...formData, consultant_comments: e.target.value })}
+                        fullWidth
+                        multiline
+                        rows={2}
+                        disabled={!canUpdateStatus}
+                    />
 
                     <TextField
                         label="Remarks/Description"
@@ -190,7 +258,7 @@ function InspectionReportDialog({ open, onClose, report, initialDate }: Inspecti
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         fullWidth
                         multiline
-                        rows={3}
+                        rows={2}
                         disabled={!canEditBasicInfo && !canUpdateStatus}
                     />
 

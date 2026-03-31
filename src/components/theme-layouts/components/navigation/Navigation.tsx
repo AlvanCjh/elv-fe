@@ -13,9 +13,10 @@ import { useNavbarContext } from '../navbar/contexts/NavbarContext/useNavbarCont
 type NavigationProps = Partial<FuseNavigationProps>;
 
 function Navigation(props: NavigationProps) {
-	const { className = '', layout = 'vertical', dense, active } = props;
-	const { data: navigation } = useNavigationItems();
+	const { className = '', layout = 'vertical', dense, active, navigation: customNavigation } = props;
+	const { data: defaultNavigation } = useNavigationItems();
 	const { closeMobileNavbar } = useNavbarContext();
+	const navigation = customNavigation || defaultNavigation;
 
 	const isMobile = useThemeMediaQuery((theme) => theme.breakpoints.down('lg'));
 

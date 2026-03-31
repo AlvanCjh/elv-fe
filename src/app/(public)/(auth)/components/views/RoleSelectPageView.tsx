@@ -2,10 +2,11 @@ import { useNavigate } from 'react-router';
 import PersonIcon from '@mui/icons-material/Person';
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import ElectricalServicesIcon from '@mui/icons-material/ElectricalServices';
+import EngineeringIcon from '@mui/icons-material/Engineering';
 
 /**
  * Role Selection Page
- * Displayed at /sign-in — lets users choose whether to log in as Member or Supervisor.
+ * Displayed at /sign-in — lets users choose whether to log in as Member, Supervisor, or Facilitator.
  */
 function RoleSelectPageView() {
     const navigate = useNavigate();
@@ -15,7 +16,7 @@ function RoleSelectPageView() {
             key: 'member',
             label: 'Member',
             description: 'Access inventory management and view building floor plans & objects.',
-            icon: <PersonIcon sx={{ fontSize: 56 }} />,
+            icon: <PersonIcon sx={{ fontSize: 48 }} />,
             accent: '#3b82f6',
             gradient: 'from-blue-600/20 to-blue-800/10',
             border: 'border-blue-500/40 hover:border-blue-400',
@@ -24,12 +25,22 @@ function RoleSelectPageView() {
         {
             key: 'supervisor',
             label: 'Supervisor',
-            description: 'Full access to inventory management and all building progress functions including adding, editing and updating objects.',
-            icon: <SupervisorAccountIcon sx={{ fontSize: 56 }} />,
+            description: 'Full access to inventory, building progress, testing and system updates.',
+            icon: <SupervisorAccountIcon sx={{ fontSize: 48 }} />,
             accent: '#a855f7',
             gradient: 'from-purple-600/20 to-purple-800/10',
             border: 'border-purple-500/40 hover:border-purple-400',
             path: '/sign-in/supervisor',
+        },
+        {
+            key: 'facilitator',
+            label: 'Facilitator',
+            description: 'Access SSDC operations, attendance, maintenance, and reports.',
+            icon: <EngineeringIcon sx={{ fontSize: 48 }} />,
+            accent: '#f59e0b',
+            gradient: 'from-amber-600/20 to-amber-800/10',
+            border: 'border-amber-500/40 hover:border-amber-400',
+            path: '/sign-in/facilitator',
         },
     ];
 
@@ -53,7 +64,7 @@ function RoleSelectPageView() {
             </div>
 
             {/* Role Cards */}
-            <div className="flex flex-col sm:flex-row gap-6 w-full max-w-2xl">
+            <div className="flex flex-col sm:flex-row gap-6 w-full max-w-5xl">
                 {roles.map((role) => (
                     <button
                         key={role.key}

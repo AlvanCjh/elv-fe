@@ -6,8 +6,9 @@ import WeatherWidget from './components/WeatherWidget';
 import InspectionReportsWidget from './components/InspectionReportsWidget';
 import MaintenanceReportsWidget from './components/MaintenanceReportsWidget';
 import BentoTile from './components/BentoTile';
+import RiskAssessmentWidget from './components/RiskAssessmentWidget';
 
-type DashboardModule = 'overview' | 'inspections' | 'maintenance' | 'fire' | 'weather';
+type DashboardModule = 'overview' | 'inspections' | 'maintenance' | 'risk' | 'weather';
 
 function OnSiteDashboardApp() {
     const [currentTab, setCurrentTab] = useState(0);
@@ -69,10 +70,10 @@ function OnSiteDashboardApp() {
                         />
                     </div>
                 );
-            case 'fire':
+            case 'risk':
                 return (
-                    <div className="w-full max-w-4xl mx-auto h-[400px] flex items-center justify-center border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-3xl animate-fade-in-up">
-                        <Typography color="text.secondary" variant="h6">This module is under construction.</Typography>
+                    <div className="w-full max-w-7xl mx-auto min-h-[600px] animate-fade-in-up">
+                        <RiskAssessmentWidget />
                     </div>
                 );
             case 'overview':
@@ -102,15 +103,15 @@ function OnSiteDashboardApp() {
                             onClick={() => setActiveModule('maintenance')}
                         />
                         <BentoTile
-                            id="fire"
-                            title="Fire Risk Assessment"
-                            description="Routine fire safety & risk analysis"
-                            icon="heroicons-outline:fire"
+                            id="risk"
+                            title="Overall Risk Assessment"
+                            description="Comprehensive site risk & safety assessments"
+                            icon="heroicons-outline:shield-check"
                             iconColor="text-red-500"
                             iconBgColor="bg-red-100 dark:bg-red-900/30"
-                            statusText="Valid"
+                            statusText="Active"
                             statusColorClass="text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/40"
-                            onClick={() => setActiveModule('fire')}
+                            onClick={() => setActiveModule('risk')}
                         />
 
                         <BentoTile

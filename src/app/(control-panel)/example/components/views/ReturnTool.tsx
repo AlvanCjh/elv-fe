@@ -28,9 +28,10 @@ function ReturnTool({ type }: ReturnToolProps) {
             const history = await getInventoryHistory();
             // Filter for tools that are not fully returned
             const activeBorrows = history.stock_out.filter(record => {
-                // Check if it's a tool (simple check based on type prop or item structure)
-                // The record.item_type comes from backend as 'App\Models\Tool' or similar
-                // Or we can check if item has 'tool_name'
+                // Skip if item is null (e.g. deleted)
+                if (!record.item) return false;
+
+                // Check if it's a tool (simple check based on item structure)
                 const isTool = (record.item as Tool).tool_name !== undefined;
 
                 // Check status

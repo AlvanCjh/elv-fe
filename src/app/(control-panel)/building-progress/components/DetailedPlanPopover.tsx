@@ -22,8 +22,16 @@ import VideocamIcon from "@mui/icons-material/Videocam";
 import SettingsInputComponentIcon from "@mui/icons-material/SettingsInputComponent";
 import AddIcon from "@mui/icons-material/Add";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import PersonIcon from "@mui/icons-material/Person";
+import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import { addObjectPort, establishObjectPortLink } from "../buildingApi";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+const cleanPortName = (name: string) => {
+  if (!name) return "";
+  const index = name.indexOf(":");
+  return index > -1 ? name.substring(index + 1) : name;
+};
 
 interface DetailedPlanPopoverProps {
   anchorPosition: { top: number; left: number } | null;
@@ -227,15 +235,15 @@ export const DetailedPlanPopover: React.FC<DetailedPlanPopoverProps> = ({
                 const status = selectedObjectData.latest_status.current_status;
                 let statusColorClass =
                   "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300";
-                if (status === "Completed")
+                if (status === "Completed" || status === "Approved")
                   statusColorClass =
                     "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300";
                 else if (status === "Pending")
                   statusColorClass =
                     "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300";
-                else if (status === "Fix2")
+                else if (status === "Fix2" || status === "Finish")
                   statusColorClass =
-                    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300";
+                    "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300";
 
                 return (
                   <Chip
@@ -249,62 +257,68 @@ export const DetailedPlanPopover: React.FC<DetailedPlanPopoverProps> = ({
 
           {isEditing ? (
             <div className="flex flex-col gap-3 mt-4">
-              <TextField
-                size="small"
-                label="Item Alias ID"
-                value={editFormData.item_alias_id}
-                onChange={(e) =>
-                  setEditFormData({
-                    ...editFormData,
-                    item_alias_id: e.target.value,
-                  })
-                }
-                required
-              />
-              <TextField
-                size="small"
-                label="Cabling Type"
-                value={editFormData.cabling_type}
-                onChange={(e) =>
-                  setEditFormData({
-                    ...editFormData,
-                    cabling_type: e.target.value,
-                  })
-                }
-              />
-              <TextField
-                size="small"
-                label="Gridline Coords"
-                value={editFormData.gridline_coords}
-                onChange={(e) =>
-                  setEditFormData({
-                    ...editFormData,
-                    gridline_coords: e.target.value,
-                  })
-                }
-              />
-              <Box sx={{ mt: 1, px: 1 }}>
-                <Typography
-                  variant="caption"
-                  className="dark:text-gray-400"
-                  color="textSecondary"
-                >
-                  Rotation ({editFormData.rotation}°)
-                </Typography>
-                <Slider
-                  size="small"
-                  value={editFormData.rotation}
-                  onChange={(_, newValue) =>
-                    setEditFormData({
-                      ...editFormData,
-                      rotation: newValue as number,
-                    })
-                  }
-                  min={0}
-                  max={359}
-                  step={15}
-                />
-              </Box>
+              {isSupervisor && (
+                <>
+                  <TextField
+                    size="small"
+                    label="Item Alias ID"
+                    value={editFormData.item_alias_id}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        item_alias_id: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                  <TextField
+                    size="small"
+                    label="Cabling Type"
+                    value={editFormData.cabling_type}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        cabling_type: e.target.value,
+                      })
+                    }
+                  />
+                  <TextField
+                    size="small"
+                    label="Gridline Coords"
+                    value={editFormData.gridline_coords}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        gridline_coords: e.target.value,
+                      })
+                    }
+                  />
+                </>
+              )}
+              {isSupervisor && (
+                <Box sx={{ mt: 1, px: 1 }}>
+                  <Typography
+                    variant="caption"
+                    className="dark:text-gray-400"
+                    color="textSecondary"
+                  >
+                    Rotation ({editFormData.rotation}°)
+                  </Typography>
+                  <Slider
+                    size="small"
+                    value={editFormData.rotation}
+                    onChange={(_, newValue) =>
+                      setEditFormData({
+                        ...editFormData,
+                        rotation: newValue as number,
+                      })
+                    }
+                    min={0}
+                    max={359}
+                    step={15}
+                  />
+                </Box>
+              )}
               <FormControl size="small" fullWidth>
                 <InputLabel>Status</InputLabel>
                 <Select
@@ -316,8 +330,17 @@ export const DetailedPlanPopover: React.FC<DetailedPlanPopoverProps> = ({
                 >
                   <MenuItem value="Fix1">Fix1 (Point Installation)</MenuItem>
                   <MenuItem value="Fix2">Fix2 (Equipment)</MenuItem>
-                  <MenuItem value="Pending">Pending (Environment)</MenuItem>
-                  <MenuItem value="Completed">Completed</MenuItem>
+                  <MenuItem value="Finish">Work Finished</MenuItem>
+                  <MenuItem value="Pending">Pending (Issues/Environment)</MenuItem>
+                  {isSupervisor && (
+                    <MenuItem value="Approved">Approved / Complete</MenuItem>
+                  )}
+                  {!isSupervisor && editFormData.status === "Approved" && (
+                    <MenuItem value="Approved">Approved / Complete</MenuItem>
+                  )}
+                  {!isSupervisor && editFormData.status === "Completed" && (
+                    <MenuItem value="Completed">Completed</MenuItem>
+                  )}
                 </Select>
               </FormControl>
               <TextField
@@ -489,6 +512,34 @@ export const DetailedPlanPopover: React.FC<DetailedPlanPopoverProps> = ({
                     </div>
                   )}
 
+                  <Box className="flex flex-col gap-2 mt-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
+                    {(() => {
+                        const finishStat = selectedObjectData.finish_status || (selectedObjectData as any).finishStatus || (selectedObjectData.latest_status?.current_status === 'Finish' ? selectedObjectData.latest_status : null);
+                        const approveStat = selectedObjectData.approve_status || (selectedObjectData as any).approveStatus || (selectedObjectData.latest_status?.current_status === 'Approved' ? selectedObjectData.latest_status : null);
+                        
+                        return (
+                            <>
+                                <div className="flex items-center gap-2">
+                                     <PersonIcon sx={{ fontSize: 16 }} className={finishStat ? "text-amber-500" : "text-gray-300"} />
+                                     <Typography variant="caption" className="font-bold text-gray-700 dark:text-gray-300">
+                                        Finished by: <span className={finishStat ? "text-amber-600 font-black" : "text-gray-400 font-medium"}>
+                                            {finishStat?.user?.displayName || finishStat?.user?.name || (finishStat ? "Member" : "-")}
+                                        </span>
+                                     </Typography>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                     <VerifiedUserIcon sx={{ fontSize: 16 }} className={approveStat ? "text-emerald-500" : "text-gray-300"} />
+                                     <Typography variant="caption" className="font-bold text-gray-700 dark:text-gray-300">
+                                        Approved by: <span className={approveStat ? "text-emerald-600 font-black" : "text-gray-400 font-medium"}>
+                                            {approveStat?.user?.displayName || approveStat?.user?.name || (approveStat ? "Supervisor" : "-")}
+                                        </span>
+                                     </Typography>
+                                </div>
+                            </>
+                        );
+                    })()}
+                  </Box>
+
                   {selectedObjectData.system_type && (
                     <div className="mt-4 flex flex-col gap-2 w-full">
                       {isSupervisor ? (
@@ -527,18 +578,17 @@ export const DetailedPlanPopover: React.FC<DetailedPlanPopoverProps> = ({
                           </Button>
                         </>
                       ) : (
-                        <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-50 border border-amber-200 dark:bg-amber-900/20 dark:border-amber-700 w-full justify-center">
-                          <LockIcon
-                            sx={{ fontSize: 13 }}
-                            className="text-amber-500"
-                          />
-                          <Typography
-                            variant="caption"
-                            className="text-amber-600 dark:text-amber-400"
-                          >
-                            View only — contact supervisor to edit
-                          </Typography>
-                        </div>
+                        <Button
+                          variant="contained"
+                          color="warning"
+                          size="small"
+                          fullWidth
+                          onClick={onEditClick}
+                          startIcon={<PersonIcon />}
+                          className="bg-amber-500 hover:bg-amber-600 text-white font-black rounded-lg h-9 shadow-md"
+                        >
+                          Update Object Status
+                        </Button>
                       )}
                     </div>
                   )}
@@ -602,7 +652,7 @@ export const DetailedPlanPopover: React.FC<DetailedPlanPopoverProps> = ({
                                 variant="caption"
                                 className="text-gray-400 font-bold uppercase tracking-wider"
                               >
-                                {port.port_name}
+                                {cleanPortName(port.port_name)}
                               </Typography>
                               <Typography
                                 variant="caption"
@@ -631,7 +681,7 @@ export const DetailedPlanPopover: React.FC<DetailedPlanPopoverProps> = ({
                                       {port.connected_to_object.item_alias_id ||
                                         port.connected_to_object.item_name}{" "}
                                       {port.connected_port_name
-                                        ? `(${port.connected_port_name})`
+                                        ? `(${cleanPortName(port.connected_port_name)})`
                                         : ""}
                                     </span>
                                     <Button

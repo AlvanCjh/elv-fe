@@ -1,13 +1,16 @@
 import FuseScrollbars from '@fuse/core/FuseScrollbars';
 import { styled } from '@mui/material/styles';
 import clsx from 'clsx';
-import { memo } from 'react';
+import { memo, useState, useEffect } from 'react';
 import Navigation from 'src/components/theme-layouts/components/navigation/Navigation';
 import UserMenu from 'src/components/theme-layouts/components/UserMenu';
 import Logo from '../../../../components/Logo';
 import useUser from '@auth/useUser';
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import PersonIcon from '@mui/icons-material/Person';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import useNavigationItems from 'src/components/theme-layouts/components/navigation/hooks/useNavigationItems';
 
 const Root = styled('div')(({ theme }) => ({
 	backgroundColor: theme.vars.palette.background.default,
@@ -46,9 +49,27 @@ type NavbarStyle1ContentProps = {
 function NavbarStyle1Content(props: NavbarStyle1ContentProps) {
 	const { className = '' } = props;
 	const { data: user } = useUser();
+	const { data: navigationData } = useNavigationItems();
 
 	const role = Array.isArray(user?.role) ? user.role[0] : user?.role;
 	const isSupervisor = role === 'supervisor';
+
+	// Read the selected view mode from local storage (set by SelectProjectPage)
+	const viewMode = localStorage.getItem('navbarViewMode') || 'construction';
+
+	// Determine which nav items to show based on mode
+	const filteredNavigation = navigationData.filter(item => {
+		// Only apply filtering to supervisors (since others only see what they have access to)
+		if (!isSupervisor) return true;
+
+		if (viewMode === 'ssdc') {
+			// SSDC mode shows SSDC Operations and Management
+			return ['ssdc-operations-group', 'management-group'].includes(item.id);
+		} else {
+			// Construction mode shows everything else except SSDC Operations
+			return item.id !== 'ssdc-operations-group';
+		}
+	});
 
 	return (
 		<Root className={clsx('flex h-full flex-auto flex-col overflow-hidden', className)}>
@@ -60,7 +81,7 @@ function NavbarStyle1Content(props: NavbarStyle1ContentProps) {
 				className="flex min-h-0 flex-1 flex-col"
 				option={{ suppressScrollX: true, wheelPropagation: false }}
 			>
-				<Navigation layout="vertical" />
+				<Navigation layout="vertical" navigation={filteredNavigation} />
 			</StyledContent>
 
 			<div className="flex flex-col gap-3 p-3">

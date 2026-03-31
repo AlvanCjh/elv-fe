@@ -34,7 +34,7 @@ function SupervisorSignInPageView() {
                         </div>
                     </div>
 
-                    <JwtSignInForm />
+                    <JwtSignInForm restrictedRole="supervisor" />
                 </div>
             </Paper>
             <AuthPagesMessageSection />

@@ -11,6 +11,7 @@ import { IconButton, Collapse, Button, Tooltip as MuiTooltip } from '@mui/materi
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createCsvUpload, CsvItem } from '../building-progress/components/boqCsvApi';
+import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 
 const ITEM_DESCRIPTIONS: Record<string, string> = {
     'BS1': '3W @ 1.5W TAPPING',
@@ -57,6 +58,9 @@ function BoqRow({ row }: { row: any }) {
                     {Number(row.completed_qty || 0).toLocaleString()}
                 </TableCell>
                 <TableCell className="font-medium text-amber-500 dark:text-amber-400 text-sm py-2" align="center">
+                    {Number(row.finished_qty || 0).toLocaleString()}
+                </TableCell>
+                <TableCell className="font-medium text-gray-400 dark:text-gray-500 text-sm py-2" align="center">
                     {Number(row.pending_qty || 0).toLocaleString()}
                 </TableCell>
                 <TableCell className="font-black text-gray-800 dark:text-gray-100 text-base py-2 pr-6" align="right">
@@ -240,25 +244,27 @@ function BoqApp({ floorId, externalSystemFilter }: { floorId?: number, externalS
     }, [boqItems, systemFilter, externalSystemFilter]);
 
     // Calculate Grand Totals based on filtered rows
-    const { grandTotalQty, grandTotalCompleted, grandTotalPending } = useMemo(() => {
-        let total = 0, completed = 0, pending = 0;
+    const { grandTotalQty, grandTotalCompleted, grandTotalFinished, grandTotalPending } = useMemo(() => {
+        let total = 0, completed = 0, finished = 0, pending = 0;
         filteredItems.forEach(item => {
             total += Number(item.total_qty || 0);
             completed += Number(item.completed_qty || 0);
+            finished += Number(item.finished_qty || 0);
             pending += Number(item.pending_qty || 0);
         });
-        return { grandTotalQty: total, grandTotalCompleted: completed, grandTotalPending: pending };
+        return { grandTotalQty: total, grandTotalCompleted: completed, grandTotalFinished: finished, grandTotalPending: pending };
     }, [filteredItems]);
 
     // Compute data for System Bar Chart
     const systemsData = useMemo(() => {
-        const aggregated: Record<string, { system: string, completed: number, pending: number }> = {};
+        const aggregated: Record<string, { system: string, completed: number, finished: number, pending: number }> = {};
         filteredItems.forEach(item => {
             const sys = item.system_type?.toUpperCase() || 'UNKNOWN';
             if (!aggregated[sys]) {
-                aggregated[sys] = { system: sys, completed: 0, pending: 0 };
+                aggregated[sys] = { system: sys, completed: 0, finished: 0, pending: 0 };
             }
             aggregated[sys].completed += Number(item.completed_qty || 0);
+            aggregated[sys].finished += Number(item.finished_qty || 0);
             aggregated[sys].pending += Number(item.pending_qty || 0);
         });
         return Object.values(aggregated);
@@ -267,8 +273,9 @@ function BoqApp({ floorId, externalSystemFilter }: { floorId?: number, externalS
     // Compute data for Progress Pie Chart
     const progressData = useMemo(() => [
         { name: 'Completed', value: grandTotalCompleted, color: '#10b981' }, // Emerald-500
-        { name: 'Pending', value: grandTotalPending, color: '#f59e0b' },    // Amber-500
-    ], [grandTotalCompleted, grandTotalPending]);
+        { name: 'Finished', value: grandTotalFinished, color: '#f59e0b' },   // Amber-500
+        { name: 'Pending', value: grandTotalPending, color: '#94a3b8' },     // Slate-400
+    ], [grandTotalCompleted, grandTotalFinished, grandTotalPending]);
 
     const COLORS = ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6'];
 
@@ -340,9 +347,9 @@ function BoqApp({ floorId, externalSystemFilter }: { floorId?: number, externalS
                 </Paper>
 
                 {/* KPI Widgets */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div>
-                        <Paper className="p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4 bg-gradient-to-br from-white to-blue-50/50 dark:from-gray-800 dark:to-gray-800/80 transform transition-transform hover:-translate-y-1">
+                        <Paper className="p-5 h-full rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4 bg-gradient-to-br from-white to-blue-50/50 dark:from-gray-800 dark:to-gray-800/80 transform transition-transform hover:-translate-y-1">
                             <div className="p-3 bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400 rounded-xl shadow-inner">
                                 <AssignmentIcon fontSize="large" />
                             </div>
@@ -355,7 +362,7 @@ function BoqApp({ floorId, externalSystemFilter }: { floorId?: number, externalS
                         </Paper>
                     </div>
                     <div>
-                        <Paper className="p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4 bg-gradient-to-br from-white to-emerald-50/50 dark:from-gray-800 dark:to-gray-800/80 transform transition-transform hover:-translate-y-1">
+                        <Paper className="p-5 h-full rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4 bg-gradient-to-br from-white to-emerald-50/50 dark:from-gray-800 dark:to-gray-800/80 transform transition-transform hover:-translate-y-1">
                             <div className="p-3 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400 rounded-xl shadow-inner">
                                 <CheckCircleIcon fontSize="large" />
                             </div>
@@ -368,13 +375,26 @@ function BoqApp({ floorId, externalSystemFilter }: { floorId?: number, externalS
                         </Paper>
                     </div>
                     <div>
-                        <Paper className="p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4 bg-gradient-to-br from-white to-amber-50/50 dark:from-gray-800 dark:to-gray-800/80 transform transition-transform hover:-translate-y-1">
+                        <Paper className="p-5 h-full rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4 bg-gradient-to-br from-white to-amber-50/50 dark:from-gray-800 dark:to-gray-800/80 transform transition-transform hover:-translate-y-1">
                             <div className="p-3 bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400 rounded-xl shadow-inner">
+                                <FuseSvgIcon size={32}>heroicons-outline:sparkles</FuseSvgIcon>
+                            </div>
+                            <div>
+                                <Typography variant="caption" className="font-bold text-gray-500 uppercase tracking-wider block mb-1">Work Finished</Typography>
+                                <Typography variant="h4" className="font-black text-amber-600 dark:text-amber-400">
+                                    {isLoading ? <CircularProgress size={20} /> : grandTotalFinished.toLocaleString()}
+                                </Typography>
+                            </div>
+                        </Paper>
+                    </div>
+                    <div>
+                        <Paper className="p-5 h-full rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4 bg-gradient-to-br from-white to-slate-50/50 dark:from-gray-800 dark:to-gray-800/80 transform transition-transform hover:-translate-y-1">
+                            <div className="p-3 bg-slate-100 text-slate-500 dark:bg-slate-900/40 dark:text-slate-400 rounded-xl shadow-inner">
                                 <PendingIcon fontSize="large" />
                             </div>
                             <div>
                                 <Typography variant="caption" className="font-bold text-gray-500 uppercase tracking-wider block mb-1">Pending / Working</Typography>
-                                <Typography variant="h4" className="font-black text-amber-600 dark:text-amber-400">
+                                <Typography variant="h4" className="font-black text-slate-600 dark:text-slate-400">
                                     {isLoading ? <CircularProgress size={20} /> : grandTotalPending.toLocaleString()}
                                 </Typography>
                             </div>
@@ -437,7 +457,8 @@ function BoqApp({ floorId, externalSystemFilter }: { floorId?: number, externalS
                                             <RechartsTooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }} />
                                             <RechartsLegend iconType="circle" wrapperStyle={{ paddingTop: '10px' }} />
                                             <Bar dataKey="completed" name="Completed" stackId="a" fill="#10b981" radius={[0, 0, 4, 4]} />
-                                            <Bar dataKey="pending" name="Pending" stackId="a" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                                            <Bar dataKey="finished" name="Finished" stackId="a" fill="#f59e0b" />
+                                            <Bar dataKey="pending" name="Pending" stackId="a" fill="#94a3b8" radius={[4, 4, 0, 0]} />
                                         </BarChart>
                                     </ResponsiveContainer>
                                 )}
@@ -468,6 +489,7 @@ function BoqApp({ floorId, externalSystemFilter }: { floorId?: number, externalS
                                         <TableCell className="font-bold text-gray-500 uppercase tracking-wider bg-gray-50 dark:bg-gray-900 text-[10px] py-3">Type</TableCell>
                                         <TableCell className="font-bold text-gray-500 uppercase tracking-wider bg-gray-50 dark:bg-gray-900 text-[10px] py-3">Unit</TableCell>
                                         <TableCell className="font-bold text-gray-500 uppercase tracking-wider bg-gray-50 dark:bg-gray-900 text-[10px] py-3 pr-2" align="center">Completed</TableCell>
+                                        <TableCell className="font-bold text-gray-500 uppercase tracking-wider bg-gray-50 dark:bg-gray-900 text-[10px] py-3 pr-2" align="center">Finished</TableCell>
                                         <TableCell className="font-bold text-gray-500 uppercase tracking-wider bg-gray-50 dark:bg-gray-900 text-[10px] py-3 pr-2" align="center">Pending</TableCell>
                                         <TableCell className="font-bold text-emerald-600 uppercase tracking-wider bg-gray-50 dark:bg-gray-900 text-[11px] py-3 pr-6" align="right">Total</TableCell>
                                     </TableRow>
@@ -486,6 +508,9 @@ function BoqApp({ floorId, externalSystemFilter }: { floorId?: number, externalS
                                                 {grandTotalCompleted.toLocaleString()}
                                             </TableCell>
                                             <TableCell className="font-bold text-amber-600 dark:text-amber-300 py-4" align="center">
+                                                {grandTotalFinished.toLocaleString()}
+                                            </TableCell>
+                                            <TableCell className="font-bold text-slate-500 dark:text-slate-400 py-4" align="center">
                                                 {grandTotalPending.toLocaleString()}
                                             </TableCell>
                                             <TableCell className="font-black text-emerald-600 dark:text-emerald-400 text-lg py-4 pr-6" align="right">
@@ -495,7 +520,7 @@ function BoqApp({ floorId, externalSystemFilter }: { floorId?: number, externalS
                                     )}
                                     {filteredItems.length === 0 && !isLoading && (
                                         <TableRow>
-                                            <TableCell colSpan={9} className="text-center py-12 text-gray-500 dark:text-gray-400">
+                                            <TableCell colSpan={10} className="text-center py-12 text-gray-500 dark:text-gray-400">
                                                 No objects matched the selected filters.
                                             </TableCell>
                                         </TableRow>

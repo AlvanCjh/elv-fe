@@ -12,6 +12,7 @@ import PolylineIcon from '@mui/icons-material/ShowChart';
 import PolygonIcon from '@mui/icons-material/Category';
 import Crop169Icon from '@mui/icons-material/Crop169';
 import LockIcon from '@mui/icons-material/Lock';
+import PersonIcon from '@mui/icons-material/Person';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchAnnotations, createAnnotation, fetchObjects, createObject, fetchLegends, fetchFloorDetails, Zone, Legend, updateObjectDetails, updateObjectStatus, deleteObject, useAllObjects, useBuildings } from '../buildingApi';
 import { Autocomplete } from '@mui/material';
@@ -875,9 +876,9 @@ const DetailedPlanView: FC<DetailedPlanViewProps> = ({ isOpen, onClose, floorId,
 
                     {/* Role badge for members */}
                     {!isSupervisor && (
-                        <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-50 border border-amber-200 dark:bg-amber-900/20 dark:border-amber-700">
-                            <LockIcon sx={{ fontSize: 14 }} className="text-amber-500" />
-                            <Typography variant="caption" className="text-amber-600 dark:text-amber-400 font-semibold">View Only</Typography>
+                        <div className="flex items-center gap-1 px-3 py-1 rounded-lg bg-blue-50 border border-blue-200 dark:bg-blue-900/20 dark:border-blue-700">
+                            <PersonIcon sx={{ fontSize: 14 }} className="text-blue-500" />
+                            <Chip label="Field Member Mode" size="small" variant="outlined" className="h-5 text-[10px] font-bold border-blue-200 text-blue-600 uppercase" />
                         </div>
                     )}
                     <div className="flex items-center gap-2">
@@ -1121,7 +1122,10 @@ const DetailedPlanView: FC<DetailedPlanViewProps> = ({ isOpen, onClose, floorId,
 
                                         // Status Color Mapping
                                         const status = obj.latest_status?.current_status;
-                                        const strokeClr = status === 'Pending' ? '#ef4444' : status === 'Fix1' ? '#3b82f6' : status === 'Fix2' ? '#eab308' : '#22c55e';
+                                        let strokeClr = '#3b82f6'; // Default Fix1 Blue
+                                        if (status === 'Pending') strokeClr = '#ef4444';
+                                        else if (status === 'Fix2' || status === 'Finish') strokeClr = '#eab308';
+                                        else if (status === 'Completed' || status === 'Approved') strokeClr = '#22c55e';
 
                                         const isRelocatingThis = relocatingObjectId === obj.id;
 
@@ -1239,9 +1243,13 @@ const DetailedPlanView: FC<DetailedPlanViewProps> = ({ isOpen, onClose, floorId,
                                                                     <circle cx="0" cy="0" r="6" fill={strokeClr} stroke="white" strokeWidth="2" />
                                                                 )}
                                                             </g>
-                                                            {status === 'Completed' && (
+                                                            {(status === 'Completed' || status === 'Approved' || status === 'Finish') && (
                                                                 <g transform={`scale(${1 / zoomLevel}) translate(12, -12)`} style={{ pointerEvents: 'none' }}>
-                                                                    <circle cx="0" cy="0" r="7" fill="#22c55e" stroke="white" strokeWidth="1.5" />
+                                                                    <circle 
+                                                                        cx="0" cy="0" r="7" 
+                                                                        fill={status === 'Finish' ? "#F59E0B" : "#22c55e"} 
+                                                                        stroke="white" strokeWidth="1.5" 
+                                                                    />
                                                                     <path d="M-2 0.5 L-0.5 2 L3 -2" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                                                 </g>
                                                             )}

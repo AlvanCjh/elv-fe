@@ -34,7 +34,7 @@ function MemberSignInPageView() {
                         </div>
                     </div>
 
-                    <JwtSignInForm />
+                    <JwtSignInForm restrictedRole="member" />
                 </div>
             </Paper>
             <AuthPagesMessageSection />

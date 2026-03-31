@@ -96,33 +96,33 @@ function InventoryHistoryView({ type = 'material' }: InventoryHistoryViewProps) 
                     <Table stickyHeader>
                         <TableHead className="bg-gray-50 dark:bg-gray-900">
                             <TableRow>
-                                <TableCell className="font-semibold py-12 pl-24 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Date</TableCell>
-                                <TableCell className="font-semibold py-12 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Item</TableCell>
-                                <TableCell className="font-semibold py-12 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Brand</TableCell>
-                                <TableCell className="font-semibold py-12 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Quantity In</TableCell>
-                                <TableCell className="font-semibold py-12 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Remarks</TableCell>
+                                <TableCell className="font-semibold py-6 pl-16 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Date</TableCell>
+                                <TableCell className="font-semibold py-6 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Item</TableCell>
+                                <TableCell className="font-semibold py-6 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Brand</TableCell>
+                                <TableCell className="font-semibold py-6 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Quantity In</TableCell>
+                                <TableCell className="font-semibold py-6 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Remarks</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {stockIn.map((record: StockInRecordType) => (
                                 <TableRow key={record.id} hover className="transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
-                                    <TableCell className="py-12 pl-24 text-gray-600 dark:text-gray-400 border-b dark:border-gray-700">
+                                    <TableCell className="py-6 pl-16 text-gray-600 dark:text-gray-400 border-b dark:border-gray-700">
                                         {format(new Date(record.date_in || record.created_at), 'dd MMM yyyy')}
                                     </TableCell>
-                                    <TableCell className="py-12 font-medium text-gray-900 dark:text-gray-100 border-b dark:border-gray-700">
+                                    <TableCell className="py-6 font-medium text-gray-900 dark:text-gray-100 border-b dark:border-gray-700">
                                         {getItemName(record)}
                                     </TableCell>
-                                    <TableCell className="py-12 text-gray-600 dark:text-gray-400 border-b dark:border-gray-700">
+                                    <TableCell className="py-6 text-gray-600 dark:text-gray-400 border-b dark:border-gray-700">
                                         {getItemBrand(record)}
                                     </TableCell>
-                                    <TableCell className="py-12 border-b dark:border-gray-700">
+                                    <TableCell className="py-6 border-b dark:border-gray-700">
                                         <Chip
                                             label={`+ ${record.in_qty} ${getItemUnit(record)}`}
                                             size="small"
                                             className="bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-400 font-bold"
                                         />
                                     </TableCell>
-                                    <TableCell className="py-12 text-gray-500 dark:text-gray-400 max-w-xs truncate border-b dark:border-gray-700" title={record.remarks}>
+                                    <TableCell className="py-6 text-gray-500 dark:text-gray-400 max-w-xs truncate border-b dark:border-gray-700" title={record.remarks}>
                                         {record.remarks || '-'}
                                     </TableCell>
                                 </TableRow>
@@ -140,11 +140,11 @@ function InventoryHistoryView({ type = 'material' }: InventoryHistoryViewProps) 
                     <Table stickyHeader>
                         <TableHead className="bg-gray-50 dark:bg-gray-900">
                             <TableRow>
-                                <TableCell className="font-semibold py-12 pl-24 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Date</TableCell>
-                                <TableCell className="font-semibold py-12 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Item</TableCell>
-                                <TableCell className="font-semibold py-12 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Used By</TableCell>
-                                <TableCell className="font-semibold py-12 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Quantity / Status</TableCell>
-                                <TableCell className="font-semibold py-12 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Remarks</TableCell>
+                                <TableCell className="font-semibold py-6 pl-16 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Date</TableCell>
+                                <TableCell className="font-semibold py-6 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Item</TableCell>
+                                <TableCell className="font-semibold py-6 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Used By</TableCell>
+                                <TableCell className="font-semibold py-6 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Quantity / Status</TableCell>
+                                <TableCell className="font-semibold py-6 bg-gray-50 dark:bg-gray-900 dark:text-gray-400">Remarks</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -154,16 +154,16 @@ function InventoryHistoryView({ type = 'material' }: InventoryHistoryViewProps) 
 
                                 return (
                                     <TableRow key={record.id} hover className="transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
-                                        <TableCell className="py-12 pl-24 text-gray-600 dark:text-gray-400 border-b dark:border-gray-700">
+                                        <TableCell className="py-6 pl-16 text-gray-600 dark:text-gray-400 border-b dark:border-gray-700">
                                             {format(new Date(record.date_out || record.created_at), 'dd MMM yyyy')}
                                         </TableCell>
-                                        <TableCell className="py-12 font-medium text-gray-900 dark:text-gray-100 border-b dark:border-gray-700">
+                                        <TableCell className="py-6 font-medium text-gray-900 dark:text-gray-100 border-b dark:border-gray-700">
                                             {getItemName(record)}
                                         </TableCell>
-                                        <TableCell className="py-12 text-gray-600 dark:text-gray-400 border-b dark:border-gray-700">
+                                        <TableCell className="py-6 text-gray-600 dark:text-gray-400 border-b dark:border-gray-700">
                                             {record.user?.displayName || record.user?.name || record.user?.email || 'Unknown User'}
                                         </TableCell>
-                                        <TableCell className="py-12 border-b dark:border-gray-700">
+                                        <TableCell className="py-6 border-b dark:border-gray-700">
                                             <Chip
                                                 label={`- ${record.out_qty} ${getItemUnit(record)}`}
                                                 size="small"
@@ -181,7 +181,7 @@ function InventoryHistoryView({ type = 'material' }: InventoryHistoryViewProps) 
                                                 />
                                             )}
                                         </TableCell>
-                                        <TableCell className="py-12 text-gray-500 dark:text-gray-400 max-w-xs border-b dark:border-gray-700">
+                                        <TableCell className="py-6 text-gray-500 dark:text-gray-400 max-w-xs border-b dark:border-gray-700">
                                             <div className="mb-1">{originalRemark || '-'}</div>
                                             {returns.length > 0 && (
                                                 <Button

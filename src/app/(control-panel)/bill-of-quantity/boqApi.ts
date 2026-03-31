@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import api from '../../../utils/api';
-import { useProject } from '../../../context/ProjectContext';
+import { api } from '@/utils/api';
+import { useProject } from '@/context/ProjectContext';
 
 export interface BoqSummaryRow {
     system_type: string;
@@ -10,6 +10,7 @@ export interface BoqSummaryRow {
     unit_cost: string;
     total_qty: number;
     completed_qty: number;
+    finished_qty: number;
     pending_qty: number;
     total_cost: string;
     alias_ids: string | null;
@@ -21,8 +22,8 @@ export function useBoqSummary(floorId?: number) {
         queryKey: ['boq_summary', floorId, activeProjectId],
         queryFn: async (): Promise<BoqSummaryRow[]> => {
             const url = floorId ? `boq/summary?floor_id=${floorId}` : 'boq/summary';
-            const response = await api.get(url).json<{ data: BoqSummaryRow[] }>();
-            return response.data || [];
+            const response = await api.get(url).json<{ status: string; data: BoqSummaryRow[] }>();
+            return response.data;
         },
         enabled: !!activeProjectId
     });
@@ -61,8 +62,8 @@ export function useCableTopology(floorId?: number, systemType?: string) {
                 params.append('system_type', systemType);
             }
 
-            const response = await api.get(`boq/cables?${params.toString()}`).json<{ data: CableTopologyRow[] }>();
-            return response.data || [];
+            const response = await api.get(`boq/cables`, { searchParams: params }).json<{ status: string; data: CableTopologyRow[] }>();
+            return response.data;
         },
         enabled: !!floorId && !!activeProjectId
     });

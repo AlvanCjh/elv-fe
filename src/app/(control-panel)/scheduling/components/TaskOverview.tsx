@@ -122,7 +122,7 @@ const TaskOverview: React.FC<TaskOverviewProps> = ({ schedules, onSelectTask, se
                                                     <FileIcon 
                                                         fontSize="small" 
                                                         className={selectedTaskId === task.id ? 'text-white/50' : 'text-gray-300 group-hover:text-blue-400'} 
-                                                    />
+                                                     />
                                                     <div className="flex flex-col min-w-0 flex-1">
                                                         <Typography 
                                                             variant="caption" 

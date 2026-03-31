@@ -12,6 +12,8 @@ import Box from "@mui/material/Box";
 import Tooltip from "@mui/material/Tooltip";
 import Paper from "@mui/material/Paper";
 import Badge from "@mui/material/Badge";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useProject } from "@/context/ProjectContext";
 import { useNavigate } from "react-router";
@@ -199,7 +201,7 @@ const deleteProject = async (id: number) => {
 };
 
 export default function SelectProjectPage() {
-  const { setActiveProjectId } = useProject();
+  const { setActiveProjectId, setActiveProject } = useProject();
   const navigate = useNavigate();
   const { data: user } = useUser();
   const queryClient = useQueryClient();
@@ -267,18 +269,38 @@ export default function SelectProjectPage() {
     ? user?.role.includes("supervisor")
     : user?.role === "supervisor";
 
+  const { viewMode, setViewMode } = useProject();
+
   const handleEnterWorkspace = (id: number) => {
-    setActiveProjectId(id);
-    navigate("/building-progress");
+    const project = projects?.find(p => p.id === id);
+    if (project) {
+        setActiveProject(project);
+    } else {
+        setActiveProjectId(id);
+    }
+    
+    // Always direct facilitators to SSDC Ops by default, but allow Supervisors/Members to choose via slider
+    if (user?.role === 'facilitator') {
+       navigate("/facilitator");
+       return;
+    }
+
+    // Rely on the slider choice for others (and facilitators if they use the toggle)
+    if (viewMode === 'ssdc') {
+      navigate("/facilitator");
+    } else {
+      navigate("/building-progress");
+    }
   };
 
   const handleCreateProject = () => {
     if (!newProjectName.trim()) return;
 
     let buildingPayload = undefined;
-    if (newBuildingName.trim() && pinLocation) {
+    // Always create a building if a pin is set, falling back to project name if building name is empty
+    if (pinLocation) {
       buildingPayload = {
-        name: newBuildingName,
+        name: newBuildingName.trim() || `${newProjectName.trim()} Main Building`,
         total_floor: newBuildingFloors,
         latitude: pinLocation.lat.toString(),
         longitude: pinLocation.lng.toString(),
@@ -308,9 +330,44 @@ export default function SelectProjectPage() {
       <div className="absolute top-0 left-0 right-0 z-[1000] p-6 pointer-events-none">
         <div className="flex justify-between items-start max-w-[1400px] mx-auto">
           <div className="pointer-events-auto bg-slate-900/40 backdrop-blur-md p-6 rounded-2xl border border-white/5 shadow-2xl">
-            <Typography variant="h4" className="font-black tracking-tighter uppercase mb-1">
+            <Typography variant="h4" className="font-black tracking-tighter uppercase mb-4">
               Select Workspace
             </Typography>
+
+            <div className="mb-4">
+              <ToggleButtonGroup
+                color="primary"
+                value={viewMode}
+                exclusive
+                onChange={(e, mode) => mode !== null && setViewMode(mode)}
+                aria-label="View Mode"
+                size="small"
+                sx={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '8px',
+                  padding: '4px',
+                  '.MuiToggleButton-root': {
+                    border: 'none',
+                    color: '#94a3b8',
+                    fontWeight: 'bold',
+                    textTransform: 'none',
+                    padding: '6px 16px',
+                    borderRadius: '6px !important',
+                    lineHeight: 1.2,
+                    '&.Mui-selected': {
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)',
+                      pointerEvents: 'none'
+                    }
+                  }
+                }}
+              >
+                <ToggleButton value="construction">Construction</ToggleButton>
+                <ToggleButton value="ssdc">SSDC Operations</ToggleButton>
+              </ToggleButtonGroup>
+            </div>
+
             <div className="flex items-center gap-3">
               <Typography variant="caption" className="text-slate-400 font-bold uppercase tracking-widest">
                 {projects?.length || 0} projects

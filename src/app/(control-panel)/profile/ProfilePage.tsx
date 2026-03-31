@@ -172,7 +172,7 @@ function ProfilePage() {
 								<input ref={fileRef} type="file" className="hidden" accept="image/*" onChange={onFileChange} />
 							</div>
 							<div className="text-right">
-								<span className="inline-block px-12 py-6 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[10px] font-black uppercase tracking-widest border border-indigo-100 dark:border-indigo-800">
+								<span className="inline-block px-16 py-6 rounded-full bg-white text-indigo-600 text-[11px] font-black uppercase tracking-widest shadow-xl ring-4 ring-white/20">
 									{Array.isArray(user.role) ? user.role[0] : user.role}
 								</span>
 							</div>
