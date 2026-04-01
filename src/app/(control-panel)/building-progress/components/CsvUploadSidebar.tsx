@@ -9,14 +9,15 @@ interface CsvUploadSidebarProps {
     onDragStart: (item: CsvItem) => void;
     csvItems: CsvItem[];
     setCsvItems: React.Dispatch<React.SetStateAction<CsvItem[]>>;
+    activeUploadId: number | '';
+    setActiveUploadId: (val: number | '') => void;
     floorId: string;
     currentFloorNumber?: string;
 }
 
-export const CsvUploadSidebar: FC<CsvUploadSidebarProps> = ({ onDragStart, csvItems, setCsvItems, floorId, currentFloorNumber }) => {
+export const CsvUploadSidebar: FC<CsvUploadSidebarProps> = ({ onDragStart, csvItems, setCsvItems, activeUploadId, setActiveUploadId, floorId, currentFloorNumber }) => {
     const queryClient = useQueryClient();
     const { activeProjectId } = useProject();
-    const [activeUploadId, setActiveUploadId] = useState<number | ''>('');
 
     const { data: uploads, isLoading: isUploadsLoading } = useQuery({
         queryKey: ['boq-csv-uploads', activeProjectId],

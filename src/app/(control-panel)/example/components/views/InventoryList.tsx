@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography, Paper, Table, TableBody, TableCell, TableHead, TableRow, Chip, IconButton, Tooltip } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography, Paper, Table, TableBody, TableCell, TableHead, TableRow, Chip, IconButton, Tooltip, InputAdornment, TableSortLabel } from '@mui/material';
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import { getInventory, addMaterial, updateMaterial, deleteMaterial, InventoryItem, InventoryType, Material, Tool } from '@auth/inventoryApi';
 import InventoryDashboard from './InventoryDashboard';
@@ -23,6 +23,51 @@ function InventoryList({ type = 'material' }: InventoryListProps) {
         // status: 'available', // Removed manual status, let stock decide
         type: '' // Tool type: electronic, handy, devices
     });
+
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: null, direction: 'asc' });
+
+    const handleSort = (key: string) => {
+        let direction: 'asc' | 'desc' = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const filteredAndSortedInventory = inventory
+        .filter((item) => {
+            const name = (item as Material).material_name || (item as Tool).tool_name || '';
+            const brand = item.brand || '';
+            const location = item.location || '';
+            const searchLower = searchTerm.toLowerCase();
+            return (
+                name.toLowerCase().includes(searchLower) ||
+                brand.toLowerCase().includes(searchLower) ||
+                location.toLowerCase().includes(searchLower)
+            );
+        })
+        .sort((a, b) => {
+            if (!sortConfig.key) return 0;
+
+            let aValue: any;
+            let bValue: any;
+
+            if (sortConfig.key === 'name') {
+                aValue = (a as Material).material_name || (a as Tool).tool_name || '';
+                bValue = (b as Material).material_name || (b as Tool).tool_name || '';
+            } else if (sortConfig.key === 'stock') {
+                aValue = a.quantity_in_stock;
+                bValue = b.quantity_in_stock;
+            } else {
+                aValue = (a as any)[sortConfig.key] || '';
+                bValue = (b as any)[sortConfig.key] || '';
+            }
+
+            if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+            if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+            return 0;
+        });
 
     useEffect(() => {
         refreshInventory();
@@ -113,27 +158,79 @@ function InventoryList({ type = 'material' }: InventoryListProps) {
             <InventoryDashboard inventory={inventory} />
 
             <Paper className="rounded-xl shadow-sm overflow-hidden dark:bg-gray-800">
-                <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-900/50">
-                    <Typography variant="body2" className="font-bold dark:text-gray-100">Inventory List</Typography>
-                    <Typography variant="caption" className="text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-3 py-1 rounded-full border border-gray-200 dark:border-gray-700">
-                        {inventory.length} items
-                    </Typography>
+                <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row items-start sm:items-center justify-between bg-gray-50/50 dark:bg-gray-900/50 gap-3">
+                    <div className="flex items-center gap-3">
+                        <Typography variant="body2" className="font-bold dark:text-gray-100">Inventory List</Typography>
+                        <Chip 
+                            label={`${filteredAndSortedInventory.length} items`} 
+                            size="small" 
+                            variant="outlined" 
+                            className="text-[10px] h-5 bg-white dark:bg-gray-800" 
+                        />
+                    </div>
+                    <TextField
+                        size="small"
+                        placeholder="Search items, brand, location..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="bg-white dark:bg-gray-800 w-full sm:w-80"
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <FuseSvgIcon size={16} className="text-gray-400">heroicons-outline:search</FuseSvgIcon>
+                                </InputAdornment>
+                            ),
+                            className: 'h-9 text-sm rounded-lg'
+                        }}
+                    />
                 </div>
                 <Table size="small" stickyHeader>
                     <TableHead>
                         <TableRow>
-                            <TableCell className="font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 text-xs py-2 pl-4">{itemNameLabel}</TableCell>
+                            <TableCell className="font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 text-xs py-2 pl-4">
+                                <TableSortLabel
+                                    active={sortConfig.key === 'name'}
+                                    direction={sortConfig.key === 'name' ? sortConfig.direction : 'asc'}
+                                    onClick={() => handleSort('name')}
+                                >
+                                    {itemNameLabel}
+                                </TableSortLabel>
+                            </TableCell>
                             {type === 'tool' && <TableCell className="font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 text-xs py-2">Type</TableCell>}
                             <TableCell className="font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 text-xs py-2">Description</TableCell>
-                            <TableCell className="font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 text-xs py-2">Brand</TableCell>
+                            <TableCell className="font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 text-xs py-2">
+                                <TableSortLabel
+                                    active={sortConfig.key === 'brand'}
+                                    direction={sortConfig.key === 'brand' ? sortConfig.direction : 'asc'}
+                                    onClick={() => handleSort('brand')}
+                                >
+                                    Brand
+                                </TableSortLabel>
+                            </TableCell>
                             <TableCell className="font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 text-xs py-2">Status</TableCell>
-                            <TableCell className="font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 text-xs py-2">Stock</TableCell>
-                            <TableCell className="font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 text-xs py-2">Location</TableCell>
+                            <TableCell className="font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 text-xs py-2">
+                                <TableSortLabel
+                                    active={sortConfig.key === 'stock'}
+                                    direction={sortConfig.key === 'stock' ? sortConfig.direction : 'asc'}
+                                    onClick={() => handleSort('stock')}
+                                >
+                                    Stock
+                                </TableSortLabel>
+                            </TableCell>
+                            <TableCell className="font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 text-xs py-2">
+                                <TableSortLabel
+                                    active={sortConfig.key === 'location'}
+                                    direction={sortConfig.key === 'location' ? sortConfig.direction : 'asc'}
+                                    onClick={() => handleSort('location')}
+                                >
+                                    Location
+                                </TableSortLabel>
+                            </TableCell>
                             <TableCell className="font-semibold text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 text-xs py-2 pr-4" align="right">Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {inventory.map((item) => (
+                        {filteredAndSortedInventory.map((item) => (
                             <TableRow key={item.id} hover className="transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-700/50 group">
                                 <TableCell className="font-medium text-gray-900 dark:text-gray-100 text-sm py-1.5 pl-4">
                                     {(item as Material).material_name || (item as Tool).tool_name}

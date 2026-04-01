@@ -32,5 +32,5 @@ export const createCsvUpload = async (data: { filename: string, items: Partial<C
 };
 
 export const updateCsvItemStatus = async (itemId: number, status: 'unassigned' | 'assigned'): Promise<CsvItem> => {
-    return api.put(`boq-csv-items/${itemId}`, { json: { status } }).json<CsvItem>();
+    return api.patch(`boq-csv/items/${itemId}`, { json: { status } }).json<CsvItem>();
 };

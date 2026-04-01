@@ -129,6 +129,7 @@ const DetailedPlanView: FC<DetailedPlanViewProps> = ({ isOpen, onClose, floorId,
 
     // CSV Drag and Drop State
     const [csvItems, setCsvItems] = useState<CsvItem[]>([]);
+    const [activeUploadId, setActiveUploadId] = useState<number | ''>('');
     const draggedCsvItemRef = useRef<CsvItem | null>(null);
     const activeCsvItemRef = useRef<CsvItem | null>(null);
 
@@ -337,7 +338,27 @@ const DetailedPlanView: FC<DetailedPlanViewProps> = ({ isOpen, onClose, floorId,
 
     const deleteObjectMutation = useMutation({
         mutationFn: (id: number) => deleteObject(id),
-        onSuccess: () => {
+        onSuccess: (_data, deletedId) => {
+            // Find the object being deleted in our current state before invalidating
+            const deletedObj = objects?.find(o => o.id === deletedId);
+            if (deletedObj && deletedObj.item_alias_id) {
+                // If this object had an alias, try to find the matching assigned CSV item and mark it unassigned
+                const matchingCsvItem = csvItems.find(item =>
+                    item.item_id === deletedObj.item_alias_id &&
+                    item.status === 'assigned'
+                );
+
+                if (matchingCsvItem && matchingCsvItem.id) {
+                    updateCsvItemStatusMutation.mutate({ itemId: matchingCsvItem.id, status: 'unassigned' }, {
+                        onSuccess: () => {
+                            setCsvItems(prev => prev.map(item =>
+                                item.id === matchingCsvItem.id ? { ...item, status: 'unassigned' } : item
+                            ));
+                        }
+                    });
+                }
+            }
+
             queryClient.invalidateQueries({ queryKey: ['objects', currentZoneId, selectedSystem, activeProjectId] });
             queryClient.invalidateQueries({ queryKey: ['floor', floorId, activeProjectId] });
             queryClient.invalidateQueries({ queryKey: ['boq-summary'] });
@@ -829,7 +850,17 @@ const DetailedPlanView: FC<DetailedPlanViewProps> = ({ isOpen, onClose, floorId,
                 formDataPayload.append('shape_type', 'point');
             }
 
-            const currentCsvItem = activeCsvItemRef.current;
+            let currentCsvItem = activeCsvItemRef.current;
+            if (!currentCsvItem && formData.item_alias_id) {
+                // If not dragged, try to find a matching unassigned item in the pool by its Alias ID
+                // We also filter by floor to ensure it's the correct one if the ID is reused across floors
+                const floorNo = floorData?.floor_number?.trim().toLowerCase();
+                currentCsvItem = csvItems.find(item =>
+                    item.item_id === formData.item_alias_id &&
+                    item.status === 'unassigned' &&
+                    (!item.floor_number || !floorNo || item.floor_number.trim().toLowerCase() === floorNo)
+                ) || null;
+            }
 
             objectMutation.mutate(formDataPayload, {
                 onSuccess: () => {
@@ -1292,6 +1323,8 @@ const DetailedPlanView: FC<DetailedPlanViewProps> = ({ isOpen, onClose, floorId,
                         isSaving={objectMutation.isPending || annotationMutation.isPending}
                         csvItems={csvItems}
                         setCsvItems={setCsvItems}
+                        activeUploadId={activeUploadId}
+                        setActiveUploadId={setActiveUploadId}
                         onCsvDragStart={handleCsvDragStart}
                         floorId={floorId}
                         currentFloorNumber={floorData?.floor_number}

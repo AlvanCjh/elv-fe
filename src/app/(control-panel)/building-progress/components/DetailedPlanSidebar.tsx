@@ -25,6 +25,8 @@ interface DetailedPlanSidebarProps {
     // CSV Drag and Drop Props
     csvItems: CsvItem[];
     setCsvItems: React.Dispatch<React.SetStateAction<CsvItem[]>>;
+    activeUploadId: number | '';
+    setActiveUploadId: (val: number | '') => void;
     onCsvDragStart: (item: CsvItem) => void;
     currentFloorNumber?: string;
     floorId: string;
@@ -51,6 +53,8 @@ export const DetailedPlanSidebar: React.FC<DetailedPlanSidebarProps> = ({
     isSaving,
     csvItems,
     setCsvItems,
+    activeUploadId,
+    setActiveUploadId,
     onCsvDragStart,
     currentFloorNumber,
     floorId
@@ -97,6 +101,8 @@ export const DetailedPlanSidebar: React.FC<DetailedPlanSidebarProps> = ({
                             <CsvUploadSidebar
                                 csvItems={csvItems}
                                 setCsvItems={setCsvItems}
+                                activeUploadId={activeUploadId}
+                                setActiveUploadId={setActiveUploadId}
                                 onDragStart={onCsvDragStart}
                                 floorId={floorId}
                                 currentFloorNumber={currentFloorNumber}
