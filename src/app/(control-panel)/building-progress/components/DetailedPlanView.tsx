@@ -967,7 +967,7 @@ const DetailedPlanView: FC<DetailedPlanViewProps> = ({ isOpen, onClose, floorId,
                                     size="small"
                                     placeholder="Search Floor..."
                                     className="bg-gray-100 dark:bg-gray-700 rounded-lg shadow-sm w-56"
-                                    sx={{ 
+                                    sx={{
                                         '& .MuiOutlinedInput-root': { border: 'none', py: 0, px: 1, fontSize: '0.75rem', fontWeight: 'bold' },
                                         '& .MuiOutlinedInput-notchedOutline': { border: 'none' }
                                     }}
@@ -1028,10 +1028,20 @@ const DetailedPlanView: FC<DetailedPlanViewProps> = ({ isOpen, onClose, floorId,
                                 <img
                                     ref={imageRef}
                                     src={(() => {
-                                        if (selectedSystem === 'bss' && floorData?.bss_plan_image_url) return floorData.bss_plan_image_url;
-                                        if (selectedSystem === 'pa' && floorData?.pa_plan_image_url) return floorData.pa_plan_image_url;
-                                        if (selectedSystem === 'telco' && floorData?.telco_plan_image_url) return floorData.telco_plan_image_url;
-                                        return overviewImage || '';
+                                        const resolveUrl = (imageUrl: string) => {
+                                            if (!imageUrl) return '';
+                                            try { 
+                                                const url = new URL(imageUrl);
+                                                return url.pathname + url.search; 
+                                            } catch { 
+                                                return imageUrl; 
+                                            }
+                                        };
+
+                                        if (selectedSystem === 'bss' && floorData?.bss_plan_image_url) return resolveUrl(floorData.bss_plan_image_url);
+                                        if (selectedSystem === 'pa' && floorData?.pa_plan_image_url) return resolveUrl(floorData.pa_plan_image_url);
+                                        if (selectedSystem === 'telco' && floorData?.telco_plan_image_url) return resolveUrl(floorData.telco_plan_image_url);
+                                        return resolveUrl(overviewImage || '');
                                     })()}
                                     alt="Overview"
                                     className="max-w-none shadow-2xl bg-white rounded-lg select-none"
@@ -1276,10 +1286,10 @@ const DetailedPlanView: FC<DetailedPlanViewProps> = ({ isOpen, onClose, floorId,
                                                             </g>
                                                             {(status === 'Completed' || status === 'Approved' || status === 'Finish') && (
                                                                 <g transform={`scale(${1 / zoomLevel}) translate(12, -12)`} style={{ pointerEvents: 'none' }}>
-                                                                    <circle 
-                                                                        cx="0" cy="0" r="7" 
-                                                                        fill={status === 'Finish' ? "#F59E0B" : "#22c55e"} 
-                                                                        stroke="white" strokeWidth="1.5" 
+                                                                    <circle
+                                                                        cx="0" cy="0" r="7"
+                                                                        fill={status === 'Finish' ? "#F59E0B" : "#22c55e"}
+                                                                        stroke="white" strokeWidth="1.5"
                                                                     />
                                                                     <path d="M-2 0.5 L-0.5 2 L3 -2" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                                                 </g>

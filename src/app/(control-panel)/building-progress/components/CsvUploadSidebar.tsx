@@ -60,7 +60,7 @@ export const CsvUploadSidebar: FC<CsvUploadSidebarProps> = ({ onDragStart, csvIt
 
         return uploads.filter(upload =>
             upload.items?.some(item =>
-                item.floor_number?.trim().toLowerCase() === currentFloorNumber.trim().toLowerCase()
+                item.floor_number?.toString().trim().toLowerCase() === currentFloorNumber.toString().trim().toLowerCase()
             )
         );
     }, [uploads, currentFloorNumber]);
@@ -68,10 +68,10 @@ export const CsvUploadSidebar: FC<CsvUploadSidebarProps> = ({ onDragStart, csvIt
     const filteredItems = useMemo(() => {
         let items = csvItems;
         if (activeUploadId !== '') {
-            items = items.filter(item => item.boq_csv_upload_id === activeUploadId);
+            items = items.filter(item => String(item.boq_csv_upload_id) === String(activeUploadId));
         }
         if (currentFloorNumber) {
-            items = items.filter(item => item.floor_number?.trim().toLowerCase() === currentFloorNumber.trim().toLowerCase());
+            items = items.filter(item => item.floor_number?.toString().trim().toLowerCase() === currentFloorNumber.toString().trim().toLowerCase());
         }
         return items;
     }, [csvItems, currentFloorNumber, activeUploadId]);

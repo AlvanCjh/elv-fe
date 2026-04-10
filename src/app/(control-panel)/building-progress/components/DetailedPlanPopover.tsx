@@ -494,7 +494,16 @@ export const DetailedPlanPopover: React.FC<DetailedPlanPopoverProps> = ({
                         Status Image
                       </span>
                       <img
-                        src={selectedObjectData.latest_status.image_url}
+                        src={(() => {
+                          const imageUrl = selectedObjectData.latest_status.image_url;
+                          if (!imageUrl) return "";
+                          try {
+                            const url = new URL(imageUrl);
+                            return url.pathname + url.search;
+                          } catch {
+                            return imageUrl;
+                          }
+                        })()}
                         alt="Status"
                         className="w-full max-h-48 object-cover rounded border border-gray-200 dark:border-gray-700 shadow-sm"
                       />

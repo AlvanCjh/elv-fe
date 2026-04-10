@@ -136,7 +136,7 @@ const RackView: React.FC<RackViewProps> = ({ title, type, item, riser, allObject
                     const index = fullName.indexOf(':');
                     const portName = index > -1 ? fullName.substring(index + 1) : fullName;
                     const isLinked = !!portData?.cable_id;
-                    const targetObj = allObjects.find(o => o.id === portData?.connected_to_object_id);
+                    const targetObj = allObjects.find(o => String(o.id) === String(portData?.connected_to_object_id));
                     const isDifferentFloor = targetObj && String(targetObj.zone?.floor_id) !== String(currentFloorId);
 
                     return (

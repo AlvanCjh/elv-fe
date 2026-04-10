@@ -91,7 +91,7 @@ export const uploadFloorImage = async (id: string, file: File, system?: string):
 export const uploadBuildingElevation = async (id: string, file: File): Promise<any> => {
     const formData = new FormData();
     formData.append('image', file);
-    return api.post(`buildings/${id}/elevation`, { body: formData }).json<any>();
+    return api.post(`buildings/${id}/image`, { body: formData }).json<any>();
 };
 
 export const createFloor = async (buildingId: string, data: any): Promise<any> => {
@@ -259,7 +259,8 @@ export const deleteObject = async (id: number): Promise<any> => {
 };
 
 export const createAnnotation = async (data: any): Promise<any> => {
-    return api.post('annotations', { json: data }).json<any>();
+    const floorId = data.floor_id;
+    return api.post(`floors/${floorId}/annotations`, { json: data }).json<any>();
 };
 
 // --- HISTORY AND AUDIT ---

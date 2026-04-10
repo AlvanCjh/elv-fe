@@ -6,6 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/ELV/',
   plugins: [
     react({
       jsxImportSource: '@emotion/react',

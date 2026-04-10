@@ -375,7 +375,7 @@ const WiringTopologyApp: React.FC = () => {
                             </TableHead>
                             <TableBody>
                                 {(selectedRiser.ports || []).filter(p => !!p.cable_id).map((port) => {
-                                    const targetObj = allObjects?.find(o => o.id === port.connected_to_object_id);
+                                    const targetObj = allObjects?.find(o => String(o.id) === String(port.connected_to_object_id));
                                     const cleanSourcePort = port.port_name.includes(':') ? port.port_name.split(':')[1] : port.port_name;
 
                                     // Map status to visual styles

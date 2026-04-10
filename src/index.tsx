@@ -27,6 +27,8 @@ const root = createRoot(container, {
     }
 });
 
-const router = createBrowserRouter(routes);
+const router = createBrowserRouter(routes, {
+    basename: '/ELV'
+});
 
 root.render(<RouterProvider router={router} />);

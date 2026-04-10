@@ -12,15 +12,15 @@ type ProjectOption = {
 const projectOptions: ProjectOption[] = [
 	{
 		value: 'Vitejs',
-		logo: '/assets/images/logo/vite.svg',
-		darkLogo: '/assets/images/logo/vite.svg',
+		logo: `${import.meta.env.BASE_URL}assets/images/logo/vite.svg`,
+		darkLogo: `${import.meta.env.BASE_URL}assets/images/logo/vite.svg`,
 		name: 'Vitejs',
 		url: 'https://fuse-react-vitejs-skeleton.fusetheme.com'
 	},
 	{
 		value: 'Nextjs',
-		logo: '/assets/images/logo/nextjs.svg',
-		darkLogo: '/assets/images/logo/nextjs-dark.svg',
+		logo: `${import.meta.env.BASE_URL}assets/images/logo/nextjs.svg`,
+		darkLogo: `${import.meta.env.BASE_URL}assets/images/logo/nextjs-dark.svg`,
 		name: 'Nextjs',
 		url: 'https://fuse-react-nextjs-skeleton.fusetheme.com'
 	}

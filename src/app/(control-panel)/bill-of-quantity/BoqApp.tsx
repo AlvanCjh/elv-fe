@@ -128,7 +128,7 @@ function BoqApp({ floorId, externalSystemFilter }: { floorId?: number, externalS
         const reader = new FileReader();
         reader.onload = (event) => {
             try {
-                const text = event.target?.result as string;
+                const text = (event.target?.result as string).replace(/^\ufeff/, '');
                 const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
                 const parsedItems: CsvItem[] = [];
 

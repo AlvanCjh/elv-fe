@@ -36,10 +36,10 @@ function AuthPagesMessageSection() {
 							}
 						}}
 					>
-						<Avatar src="/assets/images/avatars/female-18.jpg" />
-						<Avatar src="/assets/images/avatars/female-11.jpg" />
-						<Avatar src="/assets/images/avatars/male-09.jpg" />
-						<Avatar src="/assets/images/avatars/male-16.jpg" />
+						<Avatar src={`${import.meta.env.BASE_URL}assets/images/avatars/female-18.jpg`} />
+						<Avatar src={`${import.meta.env.BASE_URL}assets/images/avatars/female-11.jpg`} />
+						<Avatar src={`${import.meta.env.BASE_URL}assets/images/avatars/male-09.jpg`} />
+						<Avatar src={`${import.meta.env.BASE_URL}assets/images/avatars/male-16.jpg`} />
 					</AvatarGroup>
 
 					<div className="ml-4 font-medium tracking-tight text-gray-400">

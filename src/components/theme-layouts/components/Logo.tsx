@@ -1,6 +1,5 @@
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-import MainProjectSelection from '@/components/MainProjectSelection';
 import clsx from 'clsx';
 
 const Root = styled('div')(({ theme }) => ({
@@ -32,7 +31,7 @@ function Logo(props: LogoProps) {
 			<div className="flex flex-1 items-center gap-2">
 				<img
 					className="logo-icon h-6 w-6"
-					src="/assets/images/logo/logo.svg"
+					src={`${import.meta.env.BASE_URL}assets/images/logo/logo.svg`}
 					alt="logo"
 				/>
 				<div className="logo-text flex flex-auto flex-col gap-0.5">
@@ -41,7 +40,7 @@ function Logo(props: LogoProps) {
 					</Typography>
 				</div>
 			</div>
-			<MainProjectSelection />
+
 		</Root>
 	);
 }

@@ -3,7 +3,7 @@ import UserModel from '@auth/user/models/UserModel';
 import { PartialDeep } from 'type-fest';
 import api from '@/utils/api';
 
-const API_URL = 'http://127.0.0.1:8000/api';
+const API_URL = import.meta.env.VITE_API_BASE_URL ? `${import.meta.env.VITE_API_BASE_URL}/api` : 'http://127.0.0.1:8000/api';
 
 /**
  * Update user in DB (Legacy/Generic)

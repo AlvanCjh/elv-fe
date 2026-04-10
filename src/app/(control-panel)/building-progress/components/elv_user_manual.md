@@ -118,14 +118,15 @@ To establish a connection between two devices (Source and Target):
    - **Target Port**: Select which port on the destination device this cable connects to.
 4. Click **Confirm Link**. The two objects are now digitally connected.
 
-### Cable Topology (Signal Flow)
-To view the global wiring backbone of the floor:
-1. Open the **Cable Topology** view from the floor dashboard.
-2. **Key Metrics**:
+### Cable Runs (Wiring Topology) Tab
+To view the global wiring backbone and signal flow of the entire floor:
+1. Navigate to the bottom of the floor dashboard (below the map).
+2. Select the **Cable Runs** tab.
+3. **Key Metrics**:
    - **Total Runs**: Total number of unique cables registered.
    - **Active Links**: Cables marked as 'Online'.
    - **Devices Linked**: Unique hardware connected via cabling.
-3. **Visual Flow**: The topology displays a side-by-side view showing the **Source Device** (Blue) and the **Target Device** (Green), with the Cable ID and Port names explicitly labeled.
+4. **Visual Flow**: The topology displays a side-by-side view showing the **Source Device** (Blue) and the **Target Device** (Green), with the Cable ID and Port names explicitly labeled.
 
 > [!IMPORTANT]
 > **[SCREENSHOT: Object Port Status Tab]**
@@ -175,7 +176,154 @@ Supervisors can update the global item list by clicking **Upload Master BOQ**.
 
 ---
 
-## 5. Troubleshooting & FAQ
+## 5. System Objects Directory
+The System Objects Directory provides a searchable, filterable list of every physical object ever mapped in the project across all buildings and floors.
+
+### Key Features:
+- **Global Search & Filter**: Effortlessly narrow down thousands of objects by **System Type** (BSS, PA, TELCO), **Floor Level**, or **Current Installation Status**.
+- **Detailed Object Data**: The table provides a comprehensive overview including the Alias ID, Item Name, Type, Cabling Type, and precise location (Building, Floor, Zone).
+- **One-Click Navigation**: Clicking on any row in the table will automatically navigate you to the **Building Progress** map for that specific floor, allowing you to see the object in its spatial context.
+
+### KPI Widgets & Analytics
+- **Live Counters**: Real-time tracking of Total Objects, Completed, Finished, and Pending status across the entire project.
+- **Status Distribution**: A pie chart visualizing the progress percentage of your installations.
+- **System Volume**: A bar chart comparing the number of devices across different systems, helping you balance resources.
+
+> [!TIP]
+> **[SCREENSHOT: System Objects Directory]**
+> *Capture the full directory page showing the KPI cards, charts, and the filtered data table.*
+
+---
+
+## 6. Wiring Topology & Rack Management
+This specialized module is used for organizing equipment inside Risers, Server Rooms, and Cabinets.
+
+### Managing Cabinet Layouts:
+1. Navigate to the **Wiring Topology** page in the sidebar.
+2. Select your **Building**, **Floor**, and specific **Riser / Server Cabinet**.
+3. **Equipment Sidebar**: Drag and drop new equipment (Switches, Patch Panels, Power Units) directly into the virtual rack.
+4. **Interactive Rack**: 
+   - Reorder items by dragging them up or down.
+   - The system automatically calculates U-positioning and depth.
+   - Supervisors can delete equipment using the **Trash Icon**.
+
+### Point-to-Point Cable Inventory:
+At the bottom of the rack view, the **Cable Run Inventory** table lists every active port connection within that specific cabinet. 
+- Track **Cable IDs**, **Source/Destination Ports**, and **Connection Status** (Online, Offline, or Problem).
+- Click the **Edit Icon** to modify connection details or update cable identifiers.
+
+> [!TIP]
+> **[SCREENSHOT: Rack Cabinet Layout]**
+> *Capture the Wiring Topology page with a Riser cabinet layout showing icons in the rack.*
+
+---
+
+## 7. Onsite Reporting Dashboard
+The Onsite Report dashboard provides a centralized "Bento-style" overview of critical field data, safety assessments, and environmental conditions.
+
+### Available Modules:
+- **Inspection Reports**: Track and manage mandatory site inspections. Each report is categorized by floor and system type, requiring supervisor approval for final closure.
+- **Maintenance Logs**: A comprehensive journal of all hardware and system maintenance tasks (e.g., server filter replacements, camera calibration), ensuring a clear audit trail of equipment upkeep.
+- **Overall Risk Assessment**: A module dedicated to documenting site safety audits and occupational hazard evaluations to maintain a safe working environment for all technicians.
+- **Weather Monitoring**: Real-time integration of site-specific weather conditions (Temperature, Humidity, Wind Speed) and multi-day forecasts to help plan outdoor or height-critical works.
+
+> [!TIP]
+> **[SCREENSHOT: Onsite Dashboard Overview]**
+> *Capture the main "Onsite Report" landing page showing the four interactive bento-tiles.*
+
+---
+
+## 8. Scheduling & Attendance Reports
+The Scheduling module provides a powerful calendar-based interface for managing both project tasks (Report Schedule) and personnel availability (Attendance Report).
+
+### 8.1 Report Scheduling (Task Management)
+Track and organize all recurring and one-off project reports or site tasks.
+- **Interactive Calendar**: View tasks by Month, Week, or Day. Drag and drop any task to reschedule it instantly.
+- **Task Status Mapping**:
+  - **Blue**: Scheduled / Upcoming tasks.
+  - **Amber**: In-Progress tasks.
+  - **Emerald**: Completed and closed tasks.
+- **Actions**: Click any task to view the **Task Overview** sidebar, which displays its description, the assigned user/team, and allows you to mark the work as **Completed**.
+
+### 8.2 Attendance & Personnel Tracking
+A dedicated view for managing the onsite workforce and their shift rotations.
+- **Shift Status**: Personnel are categorized using a color-coded legend (e.g., Morning Shift, Night Shift, Rest Day, Annual Leave, MC).
+- **Managing Shifts**:
+  1. Toggle to the **Attendance Report** tab within the Scheduling module.
+  2. Click **Add Personnel Shift** to assign a staff member to a specific date and status.
+  3. Use the **Monthly Calendar** to see an overview of staff density for any given day.
+- **Shift Summary**: Each day on the calendar displays a "Shifts Count" chip; clicking it reveals the full list of personnel on-site for that date.
+
+> [!TIP]
+> **[SCREENSHOT: Scheduling Task Management]**
+> *Capture the Scheduling page with the "Report Schedule" tab active and a task selected in the sidebar.*
+
+> [!TIP]
+> **[SCREENSHOT: Personnel Attendance View]**
+> *Capture the Attendance calendar showing grouped staff shifts with their respective color codes.*
+
+---
+
+## 9. Team & User Management
+The User Management module is a supervisor-only tool for managing project team accounts, roles, and platform access.
+
+### 9.1 Access & Permissions
+- **Supervisors Only**: Access to this module is restricted to users with the Supervisor role. 
+- **Role Hierarchy**:
+  - **Supervisor**: Full administrative access to user management, master BOQ uploads, and project-wide settings.
+  - **Facilitator**: High-level access for project oversight across multiple system segments.
+  - **Member**: Standard access for mapping objects and updating installation statuses.
+
+### 9.2 Managing Team Members
+1. **Creating Accounts**:
+   - Click **Add New User** in the top right corner.
+   - Provide the staff member's Full Name, Email, and a **Temporary Password**.
+   - Assign their project role from the dropdown menu.
+2. **Account Status**:
+   - **Active (Emerald)**: User has full access to their assigned modules.
+   - **Blocked (Red)**: Access has been revoked. Toggle the **Block** switch in the table to instantly disable or re-enable an account.
+3. **Engagement Tracking**:
+   - View the **Last Active** timestamp to monitor when technicians or project managers last synced their work to the platform.
+
+> [!IMPORTANT]
+> **[SCREENSHOT: User Management Table]**
+> *Capture the User Management page showing the team list with avatars, roles, and status switches.*
+
+---
+
+## 10. Messaging & Communication
+The Messaging Model is a real-time communication tool designed to facilitate seamless collaboration between engineers and project managers directly within the platform.
+
+### 10.1 Accessing the Chat
+The chat interface is accessible via a persistent floating widget at the bottom-right corner of the screen.
+- Click the **Indigo Chat Icon** to expand the messaging window.
+- Click the **'X'** in the header or the bubble icon again to minimize the chat.
+
+### 10.2 Communication Channels
+The system supports two primary communication modes:
+1. **Global Channel**: A project-wide broadcast area for general technical discussions and announcements. Messages sent here are visible to all registered project users.
+2. **Private Messaging**: One-on-one communication with specific team members.
+
+### 10.3 Contact List & Online Status
+To communicate with a specific team member:
+1. Toggle to the **Engineers** tab in the chat widget.
+2. View the list of all project users and their live status:
+   - **Green Badge/LIVE**: The user is currently active on the platform.
+   - **Grey/Offline**: The user is currently disconnected.
+3. Click on any name to initiate or continue a private conversation.
+
+### 10.4 Message Features
+- **Project Context**: Use the chat for quick site updates and technical queries that require immediate attention.
+- **Relatvie Timestamps**: Monitor the flow of information with live timestamps (e.g., "5 minutes ago").
+- **Auto-Refresh**: New messages appear instantly without requiring a page reload.
+
+> [!TIP]
+> **[SCREENSHOT: Chat Widget Interface]**
+> *Capture the chat widget showing the Global channel and the Engineers contact list.*
+
+---
+
+## 11. Troubleshooting & FAQ
 
 **Q: My object is on the map but the sidebar still says "Unassigned".**
 *A: Ensure the "Item Alias ID" exactly matches the ID in the CSV (e.g., `R4-L5-1`). Check that you have selected the correct floor in the sidebar filter.*
@@ -184,4 +332,5 @@ Supervisors can update the global item list by clicking **Upload Master BOQ**.
 *A: The system automatically marks the BOQ item as "Unassigned" again so you can re-map it later.*
 
 ---
-*Manual Generated on 2026-04-01*
+*Manual Generated on 2026-04-10*
+

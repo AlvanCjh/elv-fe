@@ -214,7 +214,7 @@ function JwtAuthProvider(props: FuseAuthProviderComponentProps) {
 			user: null
 		});
 
-		window.location.href = '/sign-in';
+		window.location.href = import.meta.env.BASE_URL + 'sign-in';
 	}, [removeTokenStorageValue]);
 
 	/**

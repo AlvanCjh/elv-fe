@@ -225,27 +225,36 @@ const FloorView: FC<FloorViewProps> = ({ buildingId, floorId, initialZoneId, ini
     }, [floor]);
 
     const backgroundMap = useMemo(() => {
-        if (!floor) return '/assets/maps/floor_plans/zone.svg';
+        if (!floor) return `${import.meta.env.BASE_URL}assets/maps/floor_plans/zone.svg`;
 
         if (floor.floor_plan_image_url) {
-            return floor.floor_plan_image_url;
+            try {
+                const url = new URL(floor.floor_plan_image_url);
+                return url.pathname + url.search;
+            } catch (e) {
+                return floor.floor_plan_image_url;
+            }
         }
 
         let mapName = 'zone.svg';
         if (floor.floor_number === 'LG') mapName = 'LG.svg';
         if (floor.floor_number === 'G') mapName = 'G.svg';
 
-        return `/assets/maps/floor_plans/${mapName}`;
+        return `${import.meta.env.BASE_URL}assets/maps/floor_plans/${mapName}`;
     }, [floor]);
 
     // Overview image based on system type
     const overviewImage = useMemo(() => {
         if (!floor || selectedSystem === 'all') return null;
 
+        const resolveUrl = (imageUrl: string) => {
+            try { return new URL(imageUrl).pathname + new URL(imageUrl).search; } catch { return imageUrl; }
+        };
+
         // Check if dynamic upload exists
-        if (selectedSystem === 'bss' && floor.bss_plan_image_url) return floor.bss_plan_image_url;
-        if (selectedSystem === 'pa' && floor.pa_plan_image_url) return floor.pa_plan_image_url;
-        if (selectedSystem === 'telco' && floor.telco_plan_image_url) return floor.telco_plan_image_url;
+        if (selectedSystem === 'bss' && floor.bss_plan_image_url) return resolveUrl(floor.bss_plan_image_url);
+        if (selectedSystem === 'pa' && floor.pa_plan_image_url) return resolveUrl(floor.pa_plan_image_url);
+        if (selectedSystem === 'telco' && floor.telco_plan_image_url) return resolveUrl(floor.telco_plan_image_url);
 
         let floorLabel = floor.floor_number;
         if (/^\d+$/.test(floorLabel)) {
@@ -254,7 +263,7 @@ const FloorView: FC<FloorViewProps> = ({ buildingId, floorId, initialZoneId, ini
 
         const system = selectedSystem.toLowerCase();
         // Example: /assets/maps/bss_floor_plans/bss-L5.jpg
-        return `/assets/maps/${system}_floor_plans/${system}-${floorLabel}.jpg`;
+        return `${import.meta.env.BASE_URL}assets/maps/${system}_floor_plans/${system}-${floorLabel}.jpg`;
     }, [selectedSystem, floor]);
 
     const getZonePathData = (zone: Zone) => {
@@ -314,7 +323,7 @@ const FloorView: FC<FloorViewProps> = ({ buildingId, floorId, initialZoneId, ini
             name: newZoneDetails.name,
             area: newZoneDetails.area,
             location_desc: newZoneDetails.location_desc,
-            svg_path: newZoneSvgPath.startsWith('<path') ? newZoneSvgPath : `<path d="${newZoneSvgPath}" fill="rgba(37,99,235,0.2)" stroke="#2563eb" stroke-width="2" />`
+            svg_path: newZoneSvgPath
         });
     };
 

@@ -5,7 +5,7 @@ function SignOutPageTitle() {
 		<div className="w-full">
 			<img
 				className="mx-auto w-12"
-				src="/assets/images/logo/logo.svg"
+				src={`${import.meta.env.BASE_URL}assets/images/logo/logo.svg`}
 				alt="logo"
 			/>
 

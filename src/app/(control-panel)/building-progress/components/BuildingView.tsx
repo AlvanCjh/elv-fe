@@ -210,7 +210,7 @@ const BuildingView: FC<BuildingViewProps> = ({ buildingId, onSelectFloor }) => {
         createFloorMutation.mutate({
             floor_number: newFloorDetails.floor_number,
             type: newFloorDetails.type,
-            floor_plan_svg: newFloorSvgPath.startsWith('<path') ? newFloorSvgPath : `<path d="${newFloorSvgPath}" fill="rgba(37,99,235,0.2)" stroke="#2563eb" stroke-width="2" />`
+            floor_plan_svg: newFloorSvgPath
         });
     };
 
@@ -220,8 +220,15 @@ const BuildingView: FC<BuildingViewProps> = ({ buildingId, onSelectFloor }) => {
     );
 
     const backgroundMap = useMemo(() => {
-        if (building?.elevation_image_url) return building.elevation_image_url;
-        return "/assets/maps/floor_plans/floor.svg";
+        if (building?.elevation_image_url) {
+            try {
+                const url = new URL(building.elevation_image_url);
+                return url.pathname + url.search;
+            } catch (e) {
+                return building.elevation_image_url;
+            }
+        }
+        return `${import.meta.env.BASE_URL}assets/maps/floor_plans/floor.svg`;
     }, [building]);
 
     if (isLoading) return <Box className="w-full h-full flex items-center justify-center"><CircularProgress /></Box>;
