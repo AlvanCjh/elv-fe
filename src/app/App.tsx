@@ -19,6 +19,7 @@ import { QuickPanelProvider } from '@/components/theme-layouts/components/quickP
 import RootThemeProvider from '@/contexts/RootThemeProvider';
 import { NavigationContextProvider } from '@/components/theme-layouts/components/navigation/contexts/NavigationContextProvider';
 import { ProjectProvider } from '@/context/ProjectContext';
+import { MasterListProvider } from '@/app/(control-panel)/businesses/context/MasterListContext';
 
 const queryClient = new QueryClient({
 	defaultOptions: {
@@ -48,37 +49,39 @@ function App() {
 					<QueryClientProvider client={queryClient}>
 						<ProjectProvider>
 							<Authentication>
-								<FuseSettingsProvider>
-									<I18nProvider>
-										{/* Theme Provider */}
-										<RootThemeProvider>
-											<MainThemeProvider>
-												<NavbarContextProvider>
-													<NavigationContextProvider>
-														<FuseDialogContextProvider>
-															{/* Notistack Notification Provider */}
-															<SnackbarProvider
-																maxSnack={5}
-																anchorOrigin={{
-																	vertical: 'bottom',
-																	horizontal: 'right'
-																}}
-																classes={{
-																	containerRoot:
-																		'bottom-0 right-0 mb-13 md:mb-17 mr-2 lg:mr-20 z-99'
-																}}
-															>
-																<QuickPanelProvider>
-																	<FuseLayout layouts={themeLayouts} />
-																</QuickPanelProvider>
-															</SnackbarProvider>
-														</FuseDialogContextProvider>
-													</NavigationContextProvider>
-												</NavbarContextProvider>
-											</MainThemeProvider>
-										</RootThemeProvider>
-									</I18nProvider>
-								</FuseSettingsProvider>
+								<MasterListProvider>
+										<FuseSettingsProvider>
+											<I18nProvider>
+												{/* Theme Provider */}
+												<RootThemeProvider>
+													<MainThemeProvider>
+														<NavbarContextProvider>
+															<NavigationContextProvider>
+																<FuseDialogContextProvider>
+																	{/* Notistack Notification Provider */}
+																	<SnackbarProvider
+																		maxSnack={5}
+																		anchorOrigin={{
+																			vertical: 'bottom',
+																			horizontal: 'right'
+																		}}
+																		classes={{
+																			containerRoot:
+																				'bottom-0 right-0 mb-13 md:mb-17 mr-2 lg:mr-20 z-99'
+																		}}
+																	>
+																		<QuickPanelProvider>
+																			<FuseLayout layouts={themeLayouts} />
+																		</QuickPanelProvider>
+																	</SnackbarProvider>
+																</FuseDialogContextProvider>
+															</NavigationContextProvider>
+														</NavbarContextProvider>
+													</MainThemeProvider>
+												</RootThemeProvider>
+											</I18nProvider>
+										</FuseSettingsProvider>
+									</MasterListProvider>
 							</Authentication>
 						</ProjectProvider>
 						<ReactQueryDevtools initialIsOpen={false} />

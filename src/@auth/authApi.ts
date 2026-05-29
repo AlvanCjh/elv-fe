@@ -9,7 +9,7 @@ const API_URL = import.meta.env.VITE_API_BASE_URL ? `${import.meta.env.VITE_API_
  * Update user in DB (Legacy/Generic)
  */
 export async function authUpdateDbUser(user: PartialDeep<User>): Promise<Response> {
-    return api.put(`user/${user.id}`, { json: UserModel(user) });
+    return api.put(`users/${user.id}`, { json: UserModel(user) });
 }
 
 type AuthResponse = {
@@ -56,7 +56,7 @@ export async function authGetOnlineUsers(): Promise<User[]> {
  * Update user profile (name/password)
  */
 export async function authUpdateProfile(data: { name: string; password?: string }): Promise<{ user: User }> {
-    return api.post(`profile/update`, { json: data }).json();
+    return api.put(`profile/update`, { json: data }).json();
 }
 
 /**

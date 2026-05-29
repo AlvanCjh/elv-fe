@@ -33,7 +33,7 @@ function FuseAuthorization({
   const [accessGranted, setAccessGranted] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
-  const { activeProjectId } = useProject();
+  const { activeProjectId, activeSystem } = useProject();
 
   useEffect(() => {
     const { pathname } = location;
@@ -51,6 +51,11 @@ function FuseAuthorization({
       "/logout",
       "/404",
       "/select-project",
+      "/select-workspace",
+      "/ict-dashboard",
+      "/business",
+      "/assets",
+      "/inventory",
     ];
 
     const isOnlyGuestAllowed = Array.isArray(auth) && auth.length === 0;
@@ -86,10 +91,17 @@ function FuseAuthorization({
     } else if (!isGuest) {
       // User is logged in and authorized for this route.
       // Check Project Context
+      // Check Project Context
+      const isElvRelated = Array.isArray(userRole) 
+        ? userRole.some(r => ['supervisor', 'elv', 'member', 'facilitator'].includes(r?.toString().toLowerCase()))
+        : ['supervisor', 'elv', 'member', 'facilitator'].includes(userRole?.toString().toLowerCase());
+
       if (
         !activeProjectId &&
         pathname !== "/select-project" &&
-        !ignoredPaths.includes(pathname)
+        !ignoredPaths.some(p => p === "/" ? pathname === "/" : pathname.startsWith(p)) &&
+        activeSystem === 'elv' && // Only force project selection if they are actively in the ELV system
+        isElvRelated
       ) {
         // Not in a project workspace, must select one first
         setTimeout(() => navigate("/select-project"), 0);
@@ -99,6 +111,7 @@ function FuseAuthorization({
     location.pathname,
     userRole,
     activeProjectId,
+    activeSystem,
     navigate,
     loginRedirectUrl,
   ]);

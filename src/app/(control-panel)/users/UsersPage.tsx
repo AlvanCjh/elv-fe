@@ -31,7 +31,25 @@ function UsersPage() {
     const [form, setForm] = useState({ name: '', email: '', password: '', role: 'member' });
     const [submitting, setSubmitting] = useState(false);
 
+    const isSupervisor = currentUser?.role === 'supervisor' || (Array.isArray(currentUser?.role) && currentUser.role.includes('supervisor'));
+    const isBusinessAdmin = currentUser?.role === 'business_admin' || (Array.isArray(currentUser?.role) && currentUser.role.includes('business_admin'));
+    const isSuperAdmin = currentUser?.role === 'superadmin' || (Array.isArray(currentUser?.role) && currentUser.role.includes('superadmin'));
+    const isAdmin = currentUser?.role === 'admin' || (Array.isArray(currentUser?.role) && currentUser.role.includes('admin'));
+
+    const canManageUsers = isSupervisor || isBusinessAdmin || isSuperAdmin || isAdmin;
+
     useEffect(() => { loadUsers(); }, []);
+
+    useEffect(() => {
+        if (openAdd) {
+            setForm({
+                name: '',
+                email: '',
+                password: '',
+                role: isBusinessAdmin ? 'businesses' : 'member'
+            });
+        }
+    }, [openAdd, isBusinessAdmin]);
 
     const loadUsers = async () => {
         try {
@@ -63,7 +81,7 @@ function UsersPage() {
             setUsers(prev => [...prev, newUser]);
             enqueueSnackbar('User created successfully', { variant: 'success' });
             setOpenAdd(false);
-            setForm({ name: '', email: '', password: '', role: 'member' });
+            setForm({ name: '', email: '', password: '', role: isBusinessAdmin ? 'businesses' : 'member' });
         } catch {
             enqueueSnackbar('Failed to create user', { variant: 'error' });
         } finally {
@@ -71,14 +89,21 @@ function UsersPage() {
         }
     };
 
+    const displayedUsers = isBusinessAdmin 
+        ? users.filter(u => {
+            const r = Array.isArray(u.role) ? u.role[0] : u.role;
+            return ['businesses', 'business_admin', 'business_higher_admin', 'superadmin', 'admin'].includes(r);
+        })
+        : users;
+
     if (loading) return <FuseLoading />;
 
-    if (currentUser && !currentUser.role?.includes('supervisor')) {
+    if (currentUser && !canManageUsers) {
         return (
             <div className="flex flex-col items-center justify-center h-full gap-8">
                 <FuseSvgIcon size={48} className="text-gray-300">heroicons-outline:lock-closed</FuseSvgIcon>
                 <Typography variant="h6" className="font-bold">Access Denied</Typography>
-                <Typography variant="body2" color="textSecondary">Only supervisors can manage users.</Typography>
+                <Typography variant="body2" color="textSecondary">You do not have permission to manage users.</Typography>
             </div>
         );
     }
@@ -116,7 +141,7 @@ function UsersPage() {
                         User List
                     </Typography>
                     <Typography variant="caption" color="textSecondary">
-                        {users.length} {users.length === 1 ? 'user' : 'users'}
+                        {displayedUsers.length} {displayedUsers.length === 1 ? 'user' : 'users'}
                     </Typography>
                 </div>
 
@@ -132,13 +157,13 @@ function UsersPage() {
                 </div>
 
                 {/* Rows */}
-                {users.map((user, i) => {
+                {displayedUsers.map((user, i) => {
                     const role = Array.isArray(user.role) ? user.role[0] : user.role;
                     const isSelf = user.id === currentUser?.id;
                     return (
                         <div
                             key={user.id}
-                            className={`grid gap-4 px-16 py-10 items-center hover:bg-gray-50/50 dark:hover:bg-white/[0.03] transition-colors ${i < users.length - 1 ? 'border-b border-gray-100 dark:border-white/[0.06]' : ''}`}
+                            className={`grid gap-4 px-16 py-10 items-center hover:bg-gray-50/50 dark:hover:bg-white/[0.03] transition-colors ${i < displayedUsers.length - 1 ? 'border-b border-gray-100 dark:border-white/[0.06]' : ''}`}
                             style={{ gridTemplateColumns: '2fr 120px 100px 130px 70px' }}
                         >
                             {/* Name + email */}
@@ -160,11 +185,23 @@ function UsersPage() {
                             <div>
                                 <span className={`inline-flex items-center px-8 py-2 rounded text-[10px] font-bold uppercase tracking-wide border ${
                                     role === 'supervisor'
-                                        ? 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-900/20 dark:text-violet-300 dark:border-violet-800'
-                                    : role === 'facilitator'
-                                        ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800'
-                                        : 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-900/20 dark:text-sky-300 dark:border-sky-800'
-                                }`}>
+                                         ? 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-900/20 dark:text-violet-300 dark:border-violet-800'
+                                     : role === 'facilitator'
+                                         ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800'
+                                     : role === 'ict'
+                                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800'
+                                     : role === 'business'
+                                         ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-300 dark:border-rose-800'
+                                     : role === 'businesses'
+                                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800'
+                                     : role === 'business_admin'
+                                         ? 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-300 dark:border-indigo-800'
+                                     : role === 'business_higher_admin'
+                                         ? 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-900/20 dark:text-teal-300 dark:border-teal-800'
+                                     : role === 'superadmin' || role === 'admin'
+                                         ? 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200 dark:bg-fuchsia-900/20 dark:text-fuchsia-300 dark:border-fuchsia-800'
+                                         : 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-900/20 dark:text-sky-300 dark:border-sky-800'
+                                 }`}>
                                     {role}
                                 </span>
                             </div>
@@ -198,7 +235,7 @@ function UsersPage() {
                     );
                 })}
 
-                {users.length === 0 && (
+                {displayedUsers.length === 0 && (
                     <div className="py-40 text-center text-gray-400">
                         <Typography variant="body2">No users found</Typography>
                     </div>
@@ -230,9 +267,26 @@ function UsersPage() {
                         <FormControl fullWidth size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}>
                             <InputLabel>Role</InputLabel>
                             <Select value={form.role} label="Role" onChange={e => setForm({ ...form, role: e.target.value })}>
-                                <MenuItem value="member">Member</MenuItem>
-                                <MenuItem value="supervisor">Supervisor</MenuItem>
-                                <MenuItem value="facilitator">Facilitator</MenuItem>
+                                {isBusinessAdmin ? (
+                                    <>
+                                        <MenuItem value="businesses">Business Member</MenuItem>
+                                        <MenuItem value="business_higher_admin">General Manager</MenuItem>
+                                        <MenuItem value="superadmin">Director</MenuItem>
+                                    </>
+                                ) : (
+                                    <>
+                                        <MenuItem value="member">Member</MenuItem>
+                                        <MenuItem value="supervisor">Supervisor</MenuItem>
+                                        <MenuItem value="facilitator">Facilitator</MenuItem>
+                                        <MenuItem value="elv">ELV</MenuItem>
+                                        <MenuItem value="ict">ICT</MenuItem>
+                                        <MenuItem value="business">Business</MenuItem>
+                                        <MenuItem value="businesses">Business Member</MenuItem>
+                                        <MenuItem value="business_admin">Project Manager</MenuItem>
+                                        <MenuItem value="business_higher_admin">General Manager</MenuItem>
+                                        <MenuItem value="superadmin">Director</MenuItem>
+                                    </>
+                                )}
                             </Select>
                         </FormControl>
                     </div>

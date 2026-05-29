@@ -1,279 +1,357 @@
 'use client';
-import { useState, useMemo, useEffect } from 'react';
-import { 
-    Paper, Typography, Box, CircularProgress, Button, 
-    TextField, InputAdornment, Chip, Avatar, IconButton, 
-    Tooltip, Grid 
+import { FC, useState } from 'react';
+import {
+    Typography, Paper, Box, Button, IconButton, Dialog,
+    DialogTitle, DialogContent, DialogActions, TextField,
+    CircularProgress, Chip, Grid, MenuItem, Select, FormControl, InputLabel, useTheme, alpha
 } from '@mui/material';
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
-import { useInspectionReports, InspectionReport } from '../scheduling/scheduleApi';
-import InspectionReportDialog from '../on-site-dashboard/components/InspectionReportDialog';
 import { motion, AnimatePresence } from 'motion/react';
-import { API_BASE_URL } from '@/utils/api';
-import useUser from '@auth/useUser';
 import { useProject } from '@/context/ProjectContext';
-import { useNavigate } from 'react-router';
+import {
+    useInspectionReports, useAddInspectionReport,
+    useUpdateInspectionReport, useDeleteInspectionReport, InspectionReport
+} from './inspectionApi';
+import { useServiceReports } from '../service-report/serviceApi';
+import { enqueueSnackbar } from 'notistack';
+import { format } from 'date-fns';
 
-export default function InspectionReportPage() {
-    const { activeProjectId } = useProject();
-    const navigate = useNavigate();
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const { data: reports, isLoading } = useInspectionReports(startDate, endDate);
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [selectedReport, setSelectedReport] = useState<InspectionReport | null>(null);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approve' | 'approve with comment' | 'rejected' | 'standby'>('all');
-    const { data: user } = useUser();
+const STATUS_OPTIONS = [
+    { label: 'Pending', value: 'pending', color: 'bg-amber-500' },
+    { label: 'Passed', value: 'passed', color: 'bg-emerald-500' },
+    { label: 'Failed', value: 'failed', color: 'bg-rose-500' },
+    { label: 'Follow-up', value: 'follow-up', color: 'bg-indigo-500' },
+];
 
-    useEffect(() => {
-        if (!activeProjectId) {
-            navigate('/select-project');
+const InspectionReportPage: FC = () => {
+    const theme = useTheme();
+    const { activeProject: selectedProject } = useProject();
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [editingReport, setEditingReport] = useState<InspectionReport | null>(null);
+
+    // Form state
+    const [title, setTitle] = useState('');
+    const [desc, setDesc] = useState('');
+    const [location, setLocation] = useState('');
+    const [inspectorName, setInspectorName] = useState('');
+    const [inspectionDate, setInspectionDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+    const [status, setStatus] = useState('pending');
+    const [remarks, setRemarks] = useState('');
+    const [rfwiRefNo, setRfwiRefNo] = useState('');
+    const [linkedServiceReportId, setLinkedServiceReportId] = useState<number | ''>('');
+
+    const { data: reports = [], isLoading } = useInspectionReports(selectedProject?.id);
+    const { data: serviceReports = [] } = useServiceReports(selectedProject?.id);
+    const addMutation = useAddInspectionReport();
+    const updateMutation = useUpdateInspectionReport();
+    const deleteMutation = useDeleteInspectionReport();
+
+    const handleOpenDialog = (report?: InspectionReport) => {
+        if (report) {
+            setEditingReport(report);
+            setTitle(report.title);
+            setDesc(report.description || '');
+            setLocation(report.location || '');
+            setInspectorName(report.inspector_name || '');
+            setInspectionDate(report.inspection_date || format(new Date(), 'yyyy-MM-dd'));
+            setStatus(report.status);
+            setRemarks(report.remarks || '');
+            setRfwiRefNo(report.rfwi_ref_no || '');
+            setLinkedServiceReportId(report.linked_service_report_id || '');
+        } else {
+            setEditingReport(null);
+            setTitle('');
+            setDesc('');
+            setLocation('');
+            setInspectorName('');
+            setInspectionDate(format(new Date(), 'yyyy-MM-dd'));
+            setStatus('pending');
+            setRemarks('');
+            setRfwiRefNo('');
+            setLinkedServiceReportId('');
         }
-    }, [activeProjectId, navigate]);
+        setIsDialogOpen(true);
+    };
 
-    const isSupervisor = user?.role === 'supervisor' || (Array.isArray(user?.role) && user.role.includes('supervisor'));
+    const handleSave = async () => {
+        if (!selectedProject || !title.trim()) return;
 
-    const stats = useMemo(() => {
-        if (!reports) return { total: 0, pending: 0, approved: 0, rejected: 0 };
-        return {
-            total: reports.length,
-            pending: reports.filter(r => r.status === 'pending').length,
-            approved: reports.filter(r => r.status === 'approve' || r.status === 'approve with comment').length,
-            rejected: reports.filter(r => r.status === 'rejected').length
+        const payload = {
+            project_id: selectedProject.id,
+            title,
+            description: desc,
+            location,
+            inspector_name: inspectorName,
+            inspection_date: inspectionDate,
+            status,
+            remarks,
+            rfwi_ref_no: rfwiRefNo,
+            linked_service_report_id: linkedServiceReportId === '' ? null : linkedServiceReportId,
         };
-    }, [reports]);
 
-    const filteredReports = useMemo(() => {
-        if (!reports) return [];
-        return reports.filter(report => {
-            const matchesSearch = report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (report.assigned_to_user?.displayName || report.assigned_to_user?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesStatus = statusFilter === 'all' || report.status === statusFilter;
-            return matchesSearch && matchesStatus;
-        });
-    }, [reports, searchQuery, statusFilter]);
-
-    const getStatusStyles = (status: string) => {
-        switch (status) {
-            case 'approve': 
-                return { bg: 'bg-green-50 dark:bg-green-900/20', text: 'text-green-600 dark:text-green-400', icon: 'heroicons-outline:check-circle' };
-            case 'approve with comment': 
-                return { bg: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-600 dark:text-blue-400', icon: 'heroicons-outline:chat-bubble-left-right' };
-            case 'rejected': 
-                return { bg: 'bg-red-50 dark:bg-red-900/20', text: 'text-red-600 dark:text-red-400', icon: 'heroicons-outline:x-circle' };
-            case 'standby': 
-                return { bg: 'bg-gray-50 dark:bg-gray-900/20', text: 'text-gray-600 dark:text-gray-400', icon: 'heroicons-outline:pause-circle' };
-            default: 
-                return { bg: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-600 dark:text-amber-400', icon: 'heroicons-outline:clock' };
+        try {
+            if (editingReport) {
+                await updateMutation.mutateAsync({ id: editingReport.id, payload });
+                enqueueSnackbar('Inspection report updated', { variant: 'success' });
+            } else {
+                await addMutation.mutateAsync(payload);
+                enqueueSnackbar('Inspection report created', { variant: 'success' });
+            }
+            setIsDialogOpen(false);
+        } catch (error) {
+            enqueueSnackbar('Failed to save report', { variant: 'error' });
         }
     };
 
-    if (!activeProjectId) return null;
+    const handleDelete = async (id: number) => {
+        if (!window.confirm('Are you sure you want to delete this inspection report?')) return;
+        try {
+            await deleteMutation.mutateAsync(id);
+            enqueueSnackbar('Report deleted', { variant: 'info' });
+        } catch (error) {
+            enqueueSnackbar('Failed to delete report', { variant: 'error' });
+        }
+    };
+
+    const getStatusInfo = (val: string) => STATUS_OPTIONS.find(o => o.value === val) || STATUS_OPTIONS[0];
 
     if (isLoading) {
         return (
-            <Box className="flex items-center justify-center h-full min-h-[400px]">
-                <CircularProgress size={48} thickness={4} />
-            </Box>
+            <div className="flex items-center justify-center h-full w-full bg-slate-50 dark:bg-slate-950">
+                <CircularProgress sx={{ color: '#0ea5e9' }} size={48} />
+            </div>
         );
     }
 
     return (
-        <Box className="flex flex-col gap-8 p-6 lg:p-10 w-full max-w-[1600px] mx-auto min-h-screen">
-            {/* Header Area */}
-            <Box className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <Box>
-                    <Typography variant="h3" className="font-black text-gray-800 dark:text-gray-100 flex items-center gap-4">
-                        <Box className="w-14 h-14 rounded-2xl bg-blue-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
-                            <FuseSvgIcon size={32}>heroicons-outline:clipboard-document-check</FuseSvgIcon>
-                        </Box>
-                        Inspection Dashboard
-                    </Typography>
-                    <Typography variant="body1" className="text-gray-500 font-medium mt-2 ml-18">
-                        Overview of site inspection reports and performance metrics.
-                    </Typography>
-                </Box>
-                {isSupervisor && (
-                    <Button 
-                        variant="contained" 
-                        color="primary"
+        <div className="w-full min-h-screen bg-slate-50 dark:bg-slate-950 p-6 lg:p-10 transition-colors duration-300">
+            <div className="max-w-7xl mx-auto">
+                {/* Header */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
+                    <div>
+                        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+                            <Box className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
+                                <FuseSvgIcon size={28} className="text-white">heroicons-outline:clipboard-document-check</FuseSvgIcon>
+                            </Box>
+                            Inspection Reports
+                        </h1>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium ml-15">Detailed technical and safety inspection logs</p>
+                    </div>
+
+                    <Button
+                        variant="contained"
+                        onClick={() => handleOpenDialog()}
                         startIcon={<FuseSvgIcon size={20}>heroicons-outline:plus</FuseSvgIcon>}
-                        onClick={() => {
-                            setSelectedReport(null);
-                            setDialogOpen(true);
-                        }}
-                        className="rounded-2xl font-black uppercase tracking-widest h-[56px] px-10 shadow-2xl shadow-blue-500/30 bg-blue-600 hover:bg-blue-700 transition-all"
+                        className="bg-sky-600 hover:bg-sky-700 text-white rounded-2xl px-8 py-4 font-black uppercase tracking-widest transition-all shadow-xl shadow-sky-600/20"
                     >
-                        Create New Report
+                        New Inspection
                     </Button>
-                )}
-            </Box>
+                </div>
 
-            {/* Stats Dashboard */}
-            <Box className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-                {[
-                    { label: 'Total Reports', value: stats.total, color: 'blue', icon: 'heroicons-outline:document-text' },
-                    { label: 'Pending', value: stats.pending, color: 'amber', icon: 'heroicons-outline:clock' },
-                    { label: 'Approved', value: stats.approved, color: 'green', icon: 'heroicons-outline:check-circle' },
-                    { label: 'Rejected', value: stats.rejected, color: 'red', icon: 'heroicons-outline:x-circle' }
-                ].map((stat) => (
-                    <Paper key={stat.label} className="p-8 rounded-[40px] shadow-sm border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 flex items-center gap-6 hover:border-blue-400 transition-all group cursor-default">
-                        <Avatar className={`bg-${stat.color}-100 text-${stat.color}-600 dark:bg-${stat.color}-900/30 dark:text-${stat.color}-400 w-16 h-16 rounded-[20px] group-hover:scale-110 transition-transform`}>
-                            <FuseSvgIcon size={32}>{stat.icon}</FuseSvgIcon>
-                        </Avatar>
-                        <Box>
-                            <Typography variant="h3" className={`font-black leading-tight text-${stat.color === 'blue' ? 'gray-800 dark:text-gray-100' : stat.color + '-600'}`}>
-                                {stat.value}
-                            </Typography>
-                            <Typography variant="caption" className="text-gray-500 font-bold uppercase tracking-widest leading-none">{stat.label}</Typography>
+                {/* Grid of reports */}
+                <Grid container spacing={4}>
+                    {reports.map((report) => {
+                        const sInfo = getStatusInfo(report.status);
+                        return (
+                            <Grid size={{ xs: 12, md: 6, lg: 4 }} key={report.id}>
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 h-full flex flex-col group hover:border-sky-500/50 transition-all shadow-sm hover:shadow-2xl dark:shadow-none"
+                                >
+                                    <div className="flex items-start justify-between mb-6">
+                                        <div className={`px-4 py-1.5 rounded-full ${sInfo.color}/10 border border-${sInfo.color.split('-')[1]}-500/20`}>
+                                            <Typography className={`text-[10px] font-black uppercase tracking-widest ${sInfo.color.replace('bg-', 'text-')}`}>
+                                                {sInfo.label}
+                                            </Typography>
+                                        </div>
+                                        <Typography className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                            {report.inspection_date ? format(new Date(report.inspection_date), 'MMM dd, yyyy') : 'No Date'}
+                                        </Typography>
+                                    </div>
+
+                                    <Typography className="text-xl font-black text-slate-900 dark:text-white leading-tight mb-2 group-hover:text-sky-500 transition-colors">
+                                        {report.title}
+                                    </Typography>
+
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <FuseSvgIcon size={14} className="text-slate-400">heroicons-outline:map-pin</FuseSvgIcon>
+                                        <Typography className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+                                            {report.location || 'Site General'}
+                                        </Typography>
+                                    </div>
+
+                                    <Typography className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-6 line-clamp-3">
+                                        {report.description || 'No detailed inspection report provided.'}
+                                    </Typography>
+                                    
+                                    {report.linked_service_report_id && (
+                                        <div className="flex items-center gap-2 mb-4 bg-emerald-50 dark:bg-emerald-900/20 w-fit px-3 py-1.5 rounded-lg border border-emerald-100 dark:border-emerald-800">
+                                            <FuseSvgIcon size={14} className="text-emerald-500">heroicons-outline:link</FuseSvgIcon>
+                                            <Typography className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+                                                {report.linkedServiceReport?.service_report_no || `SR-ID: ${report.linked_service_report_id}`}
+                                            </Typography>
+                                        </div>
+                                    )}
+
+                                    <Box className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                        <div>
+                                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mb-1">Inspector</p>
+                                            <p className="text-xs font-bold text-slate-900 dark:text-white">{report.inspector_name || 'Anonymous'}</p>
+                                        </div>
+
+                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <IconButton size="small" onClick={() => handleOpenDialog(report)} className="text-slate-400 hover:text-sky-500">
+                                                <FuseSvgIcon size={18}>heroicons-outline:pencil-square</FuseSvgIcon>
+                                            </IconButton>
+                                            <IconButton size="small" onClick={() => handleDelete(report.id)} className="text-slate-400 hover:text-rose-500">
+                                                <FuseSvgIcon size={18}>heroicons-outline:trash</FuseSvgIcon>
+                                            </IconButton>
+                                        </div>
+                                    </Box>
+                                </motion.div>
+                            </Grid>
+                        );
+                    })}
+
+                    {reports.length === 0 && (
+                        <Grid size={{ xs: 12 }}>
+                            <div className="py-24 flex flex-col items-center gap-6 text-center">
+                                <Box className="w-20 h-20 rounded-[2.5rem] bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-300 dark:text-slate-600">
+                                    <FuseSvgIcon size={40}>heroicons-outline:clipboard-document-list</FuseSvgIcon>
+                                </Box>
+                                <div>
+                                    <Typography className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">No Reports found</Typography>
+                                    <Typography className="text-sm text-slate-500 font-medium">Start by adding your first site inspection record.</Typography>
+                                </div>
+                            </div>
+                        </Grid>
+                    )}
+                </Grid>
+            </div>
+
+            {/* Dialog */}
+            <Dialog
+                open={isDialogOpen}
+                onClose={() => setIsDialogOpen(false)}
+                PaperProps={{
+                    sx: { borderRadius: '40px', padding: '16px', maxWidth: '550px', width: '100%', backgroundImage: 'none', bgcolor: theme.palette.mode === 'dark' ? '#0f172a' : '#fff' }
+                }}
+            >
+                <DialogTitle>
+                    <div className="flex items-center gap-3">
+                        <Box className="w-10 h-10 rounded-xl bg-sky-500 text-white flex items-center justify-center">
+                            <FuseSvgIcon size={20}>heroicons-outline:clipboard-document-check</FuseSvgIcon>
                         </Box>
-                    </Paper>
-                ))}
-            </Box>
-
-            {/* Toolbar Area */}
-            <Box className="flex flex-col lg:flex-row items-center justify-between gap-6 p-4 bg-white dark:bg-gray-800 shadow-sm rounded-[32px] border border-gray-50 dark:border-gray-800">
-                <Box className="flex items-center gap-2 p-1.5 bg-gray-50 dark:bg-gray-900/50 rounded-[24px] w-full lg:w-auto overflow-x-auto no-scrollbar">
-                    {(['all', 'pending', 'approve', 'approve with comment', 'rejected', 'standby'] as const).map((status) => (
-                        <Chip
-                            key={status}
-                            label={status.charAt(0).toUpperCase() + status.slice(1)}
-                            onClick={() => setStatusFilter(status as any)}
-                            className={`rounded-2xl font-black px-6 h-[44px] transition-all border-none ${
-                                statusFilter === status 
-                                ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-md' 
-                                : 'bg-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
-                            }`}
-                        />
-                    ))}
-                </Box>
-                <Box className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-                    <Box className="flex items-center gap-2 w-full sm:w-auto">
+                        <Typography className="text-xl font-black">{editingReport ? 'Edit Inspection' : 'Record Inspection'}</Typography>
+                    </div>
+                </DialogTitle>
+                <DialogContent>
+                    <div className="flex flex-col gap-6 pt-4">
                         <TextField
-                            type="date"
-                            label="From"
-                            size="small"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl w-full sm:w-[170px]"
-                            InputLabelProps={{ shrink: true }}
-                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' } }}
+                            label="Inspection Title / Goal"
+                            fullWidth
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            slotProps={{ input: { sx: { borderRadius: '20px', fontWeight: 700 } } }}
                         />
                         <TextField
-                            type="date"
-                            label="To"
-                            size="small"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl w-full sm:w-[170px]"
-                            InputLabelProps={{ shrink: true }}
-                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' } }}
+                            label="Location / Block / Floor"
+                            fullWidth
+                            value={location}
+                            onChange={(e) => setLocation(e.target.value)}
+                            slotProps={{ input: { sx: { borderRadius: '20px', fontWeight: 700 } } }}
                         />
-                    </Box>
-                    <TextField
-                        placeholder="Search by title or engineer..."
-                        size="small"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="bg-gray-50 dark:bg-gray-900/50 rounded-3xl w-full sm:w-[320px]"
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <FuseSvgIcon size={20} className="text-gray-400 ml-2">heroicons-outline:magnifying-glass</FuseSvgIcon>
-                                </InputAdornment>
-                            ),
-                        }}
-                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '24px', paddingLeft: '8px' } }}
-                    />
-                </Box>
-            </Box>
-
-            {/* Reports Table */}
-            <Paper className="rounded-[32px] overflow-hidden border border-gray-100 dark:border-gray-800 shadow-xl bg-white dark:bg-gray-800">
-                <Box className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-800">
-                                <th className="px-6 py-5 text-[11px] font-black uppercase tracking-widest text-gray-400">Item</th>
-                                <th className="px-6 py-5 text-[11px] font-black uppercase tracking-widest text-gray-400">Date Submitted</th>
-                                <th className="px-6 py-5 text-[11px] font-black uppercase tracking-widest text-gray-400">Description</th>
-                                <th className="px-6 py-5 text-[11px] font-black uppercase tracking-widest text-gray-400">RFWI Ref No</th>
-                                <th className="px-6 py-5 text-[11px] font-black uppercase tracking-widest text-gray-400">Location</th>
-                                <th className="px-6 py-5 text-[11px] font-black uppercase tracking-widest text-gray-400">Gridline/Zone</th>
-                                <th className="px-6 py-5 text-[11px] font-black uppercase tracking-widest text-gray-400">Status</th>
-                                <th className="px-6 py-5 text-[11px] font-black uppercase tracking-widest text-gray-400" align="right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <AnimatePresence mode="popLayout">
-                                {filteredReports.map((report, index) => {
-                                    const style = getStatusStyles(report.status);
-                                    return (
-                                        <motion.tr
-                                            layout
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            exit={{ opacity: 0 }}
-                                            key={report.id}
-                                            className="border-b border-gray-50 dark:border-gray-700/50 hover:bg-blue-50/10 dark:hover:bg-blue-900/5 transition-colors group"
-                                        >
-                                            <td className="px-6 py-6 font-black text-gray-400 text-sm">{index + 1}</td>
-                                            <td className="px-6 py-6 font-bold text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap">
-                                                {new Date(report.inspection_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
-                                            </td>
-                                            <td className="px-6 py-6 min-w-[300px]">
-                                                <Typography variant="body2" className="font-bold text-gray-800 dark:text-gray-100 line-clamp-1">{report.title}</Typography>
-                                                <Typography variant="caption" className="text-gray-400 line-clamp-2 mt-1">{report.description}</Typography>
-                                            </td>
-                                            <td className="px-6 py-6 text-sm font-black text-blue-600 dark:text-blue-400 whitespace-nowrap">{report.rfwi_ref_no || '-'}</td>
-                                            <td className="px-6 py-6 text-sm font-bold text-gray-600 dark:text-gray-400">{report.location || '-'}</td>
-                                            <td className="px-6 py-6 text-sm font-bold text-gray-600 dark:text-gray-400">{report.gridline_zone || '-'}</td>
-                                            <td className="px-6 py-6">
-                                                <Chip
-                                                    label={report.status.toUpperCase()}
-                                                    size="small"
-                                                    className={`font-black text-[10px] h-6 px-3 rounded-md ${style.bg} ${style.text}`}
-                                                />
-                                            </td>
-                                            <td className="px-6 py-6" align="right">
-                                                <Box className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    {report.file_path && (
-                                                        <IconButton size="small" className="text-blue-600" onClick={() => window.open(`${API_BASE_URL}/storage/${report.file_path}`, '_blank')}>
-                                                            <FuseSvgIcon size={18}>heroicons-outline:document-arrow-down</FuseSvgIcon>
-                                                        </IconButton>
-                                                    )}
-                                                    <IconButton size="small" onClick={() => { setSelectedReport(report); setDialogOpen(true); }}>
-                                                        <FuseSvgIcon size={18}>heroicons-outline:pencil-square</FuseSvgIcon>
-                                                    </IconButton>
-                                                </Box>
-                                            </td>
-                                        </motion.tr>
-                                    );
-                                })}
-                            </AnimatePresence>
-                        </tbody>
-                    </table>
-                </Box>
-            </Paper>
-
-            {filteredReports.length === 0 && (
-                <Box className="flex flex-col items-center justify-center py-40 text-center">
-                    <Avatar className="bg-gray-50 dark:bg-gray-800/50 w-32 h-32 mb-8 text-gray-200">
-                        <FuseSvgIcon size={64}>heroicons-outline:document-magnifying-glass</FuseSvgIcon>
-                    </Avatar>
-                    <Typography variant="h4" className="font-black text-gray-300 uppercase tracking-tighter">No inspections found</Typography>
-                    <Typography variant="body1" className="text-gray-400 mt-4 max-w-sm font-medium">
-                        Adjust your filters or search terms to find specific inspection reports.
-                    </Typography>
-                </Box>
-            )}
-
-            <InspectionReportDialog
-                open={dialogOpen}
-                onClose={() => setDialogOpen(false)}
-                report={selectedReport}
-            />
-        </Box>
+                        <TextField
+                            label="Technical Findings"
+                            placeholder="Describe what was inspected and the results..."
+                            multiline
+                            rows={3}
+                            fullWidth
+                            value={desc}
+                            onChange={(e) => setDesc(e.target.value)}
+                            slotProps={{ input: { sx: { borderRadius: '20px', fontWeight: 700 } } }}
+                        />
+                        <TextField
+                            label="RFWI Ref No"
+                            fullWidth
+                            value={rfwiRefNo}
+                            onChange={(e) => setRfwiRefNo(e.target.value)}
+                            slotProps={{ input: { sx: { borderRadius: '20px', fontWeight: 700 } } }}
+                        />
+                        <div className="flex gap-4">
+                            <TextField
+                                label="Inspector Name"
+                                fullWidth
+                                value={inspectorName}
+                                onChange={(e) => setInspectorName(e.target.value)}
+                                slotProps={{ input: { sx: { borderRadius: '20px', fontWeight: 700 } } }}
+                            />
+                            <TextField
+                                label="Date"
+                                type="date"
+                                fullWidth
+                                value={inspectionDate}
+                                onChange={(e) => setInspectionDate(e.target.value)}
+                                slotProps={{
+                                    input: { sx: { borderRadius: '20px', fontWeight: 700 } },
+                                    inputLabel: { shrink: true }
+                                }}
+                            />
+                        </div>
+                        <FormControl fullWidth>
+                            <InputLabel>Status</InputLabel>
+                            <Select
+                                value={status}
+                                label="Status"
+                                onChange={(e) => setStatus(e.target.value)}
+                                sx={{ borderRadius: '20px', fontWeight: 700 }}
+                            >
+                                {STATUS_OPTIONS.map(opt => (
+                                    <MenuItem key={opt.value} value={opt.value} className="font-bold text-xs uppercase tracking-widest">{opt.label}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth>
+                            <InputLabel>Mapped Service Report</InputLabel>
+                            <Select
+                                value={linkedServiceReportId}
+                                label="Mapped Service Report"
+                                onChange={(e) => setLinkedServiceReportId(e.target.value as number | '')}
+                                sx={{ borderRadius: '20px', fontWeight: 700 }}
+                            >
+                                <MenuItem value=""><em>None</em></MenuItem>
+                                {serviceReports.map(sr => (
+                                    <MenuItem key={sr.id} value={sr.id} className="font-bold text-xs uppercase tracking-widest">{sr.service_report_no} - {sr.company_name}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <TextField
+                            label="Closing Remarks / Follow-up"
+                            multiline
+                            rows={2}
+                            fullWidth
+                            value={remarks}
+                            onChange={(e) => setRemarks(e.target.value)}
+                            slotProps={{ input: { sx: { borderRadius: '20px', fontWeight: 700 } } }}
+                        />
+                    </div>
+                </DialogContent>
+                <DialogActions className="p-8 pt-2">
+                    <Button onClick={() => setIsDialogOpen(false)} className="rounded-xl font-black uppercase tracking-widest px-6">Discard</Button>
+                    <Button
+                        onClick={handleSave}
+                        variant="contained"
+                        color="primary"
+                        disabled={!title || addMutation.isPending || updateMutation.isPending}
+                        className="rounded-2xl font-black uppercase tracking-widest px-10 py-4 shadow-lg shadow-sky-500/20 bg-sky-600"
+                    >
+                        {(addMutation.isPending || updateMutation.isPending) ? <CircularProgress size={20} color="inherit" /> : 'Finalize Report'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </div>
     );
-}
+};
+
+export default InspectionReportPage;

@@ -223,7 +223,7 @@ function JwtAuthProvider(props: FuseAuthProviderComponentProps) {
 	const updateUser: JwtAuthContextType['updateUser'] = useCallback(async (_user) => {
 		try {
 			const response = await authUpdateDbUser(_user);
-			
+
 			if (response.ok) {
 				const updatedUser = (await response.clone().json()) as User;
 				setAuthState((current) => ({
@@ -240,6 +240,13 @@ function JwtAuthProvider(props: FuseAuthProviderComponentProps) {
 
 			throw error;
 		}
+	}, []);
+	
+	const setUser = useCallback((_user: User) => {
+		setAuthState((current) => ({
+			...current,
+			user: { ..._user, role: _user.role || ['user'] }
+		}));
 	}, []);
 
 	/**
@@ -269,9 +276,10 @@ function JwtAuthProvider(props: FuseAuthProviderComponentProps) {
 				signUp,
 				signOut,
 				updateUser,
+				setUser,
 				refreshToken
 			}) as JwtAuthContextType,
-		[authState, signIn, signUp, signOut, updateUser, refreshToken]
+		[authState, signIn, signUp, signOut, updateUser, setUser, refreshToken]
 	);
 
 	/**

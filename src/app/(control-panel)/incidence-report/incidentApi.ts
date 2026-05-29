@@ -31,6 +31,8 @@ export interface IncidentReport {
     verified_by?: string;
     verified_designation?: string;
     verified_date?: string;
+    linked_service_report_id?: number;
+    linkedServiceReport?: any; // To avoid circular imports for now
     photos: ReportPhoto[];
     created_at: string;
     updated_at: string;
@@ -55,6 +57,7 @@ export const useAddIncidentReport = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['incident-reports'] });
+            queryClient.invalidateQueries({ queryKey: ['service-reports'] });
         }
     });
 };
@@ -63,13 +66,12 @@ export const useUpdateIncidentReport = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ id, formData }: { id: number, formData: FormData }) => {
-            // Using POST with _method=PUT for multipart/form-data compatibility in some PHP setups, 
-            // or just PUT if supported. Laravel handles it better with POST + _method.
             formData.append('_method', 'PUT');
             return api.post(`incident-reports/${id}`, { body: formData }).json<IncidentReport>();
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['incident-reports'] });
+            queryClient.invalidateQueries({ queryKey: ['service-reports'] });
         }
     });
 };

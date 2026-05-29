@@ -11,7 +11,7 @@ const ModulePlaceholder: FC<{ title: string; icon: string; description: string }
                 animate={{ opacity: 1, scale: 1 }}
                 className="max-w-2xl w-full"
             >
-                <Paper className="p-12 rounded-[40px] shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col items-center text-center">
+                <Paper className="p-12 rounded-[40px] shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col items-center text-center bg-white dark:!bg-slate-900">
                     <Box sx={{
                         width: 80, height: 80, borderRadius: '24px', mb: 4,
                         background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',

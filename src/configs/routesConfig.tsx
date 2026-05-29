@@ -34,7 +34,7 @@ const routes: FuseRoutesType = [
 		children: [
 			{
 				path: '/',
-				element: <Navigate to="/select-project" />
+				element: <Navigate to="/select-workspace" />
 			},
 			...mainRoutes,
 			{

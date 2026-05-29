@@ -8,6 +8,7 @@ export type JwtAuthContextType = FuseAuthProviderState<User> & {
     signIn: (credentials: JwtSignInPayload) => Promise<{ user: User; access_token: string }>;
     signUp: (U: JwtSignUpPayload) => Promise<{ user: User; access_token: string }>;
     signOut: () => void;
+    setUser: (U: User) => void;
     refreshToken: () => Promise<string | Response>;
 };
 
@@ -18,7 +19,8 @@ const defaultAuthContext: JwtAuthContextType = {
     updateUser: async () => ({} as Response),
     signIn: async () => ({ user: null, access_token: '' }),
     signUp: async () => ({ user: null, access_token: '' }),
-    signOut: () => {},
+    signOut: () => { },
+    setUser: () => {},
     refreshToken: async () => ({} as Response)
 };
 

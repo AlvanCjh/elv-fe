@@ -34,7 +34,16 @@ const FacilitatorDashboard: FC = () => {
         { id: 'tools', label: 'Tools Inventory', icon: 'heroicons-outline:wrench', color: 'from-teal-500 to-emerald-600', url: '/inventory/tool' },
         { id: 'safety', label: 'Safety Dashboard', icon: 'heroicons-outline:shield-check', color: 'from-red-500 to-rose-600', url: '/safety' },
         { id: 'daily-checklist', label: 'Facility Daily Checklist', icon: 'heroicons-outline:clipboard-document-check', color: 'from-emerald-600 to-teal-700', url: '/daily-checklist' },
-    ];
+        { id: 'pdu-checklist', label: 'PDU Checklist', icon: 'heroicons-outline:bolt', color: 'from-indigo-600 to-blue-700', url: '/pdu-checklist' },
+        { id: 'technical-layout', label: 'Technical Layout', icon: 'heroicons-outline:map', color: 'from-amber-400 to-orange-500', url: '/technical-layout' },
+    ].filter(module => {
+        if (module.id === 'technical-layout') {
+            const userRoles = Array.isArray(user?.role) ? user.role : [user?.role];
+            const isAuthorized = userRoles.some(r => ['supervisor', 'superadmin', 'admin'].includes(r as string));
+            return isAuthorized;
+        }
+        return true;
+    });
 
     const recentActivities = [
         { id: 1, type: 'report', user: 'Azmil', action: 'submitted a new Onsite Report', target: 'Project Alpha', time: '10 mins ago', icon: 'heroicons-outline:document-text' },

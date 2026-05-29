@@ -20,7 +20,12 @@ const authRoles = {
 	/**
 	 * onlyGuest role grants access to unauthenticated users only.
 	 */
-	onlyGuest: []
+	onlyGuest: [],
+
+	/**
+	 * business: both supervisor and business can access
+	 */
+	business: ['supervisor', 'business']
 };
 
 export default authRoles;

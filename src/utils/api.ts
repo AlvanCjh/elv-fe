@@ -11,6 +11,7 @@ let globalHeaders: Record<string, string> = {};
 
 export const api: KyInstance = ky.create({
     prefixUrl: `${API_BASE_URL}/api`, 
+    timeout: 60000, // Increase global timeout to 60 seconds for file uploads
     hooks: {
         beforeRequest: [
             (request) => {

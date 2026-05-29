@@ -52,7 +52,7 @@ function JwtSignInForm({ restrictedRole }: JwtSignInFormProps) {
 
 	useEffect(() => {
 		if (isAuthenticated) {
-			navigate('/select-project');
+			navigate('/select-workspace');
 		}
 	}, [isAuthenticated, navigate]);
 
@@ -68,9 +68,9 @@ function JwtSignInForm({ restrictedRole }: JwtSignInFormProps) {
                 if (restrictedRole && session?.user) {
                     const userRoles = Array.isArray(session.user.role) 
                         ? session.user.role 
-                        : [session.user.role?.toString().toLowerCase()];
+                        : [session.user.role?.toString()?.toLowerCase()];
                     
-                    const hasRequiredRole = userRoles.some(r => r?.toLowerCase() === restrictedRole.toLowerCase() || r?.toLowerCase() === 'admin');
+                    const hasRequiredRole = userRoles.some(r => r?.toLowerCase() === restrictedRole.toLowerCase() || r?.toLowerCase() === 'admin' || r?.toLowerCase() === 'supervisor');
 
                     if (!hasRequiredRole) {
                         signOut();
@@ -78,7 +78,7 @@ function JwtSignInForm({ restrictedRole }: JwtSignInFormProps) {
                         return;
                     }
                 }
-				navigate('/select-project');
+				navigate('/select-workspace');
 			})
 			.catch((error) => {
                 console.error("Login catch error:", error);

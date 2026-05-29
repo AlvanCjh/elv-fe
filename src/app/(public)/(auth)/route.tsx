@@ -21,31 +21,10 @@ const noLayoutConfig = {
 
 const route: FuseRouteItemType = {
     children: [
-        // Role selection landing page
+        // Unified login page
         {
             path: 'sign-in',
-            element: <RoleSelectPageView />,
-            settings: noLayoutConfig,
-            auth: authRoles.onlyGuest
-        },
-        // Member login
-        {
-            path: 'sign-in/member',
-            element: <MemberSignInPageView />,
-            settings: noLayoutConfig,
-            auth: authRoles.onlyGuest
-        },
-        // Supervisor login
-        {
-            path: 'sign-in/supervisor',
-            element: <SupervisorSignInPageView />,
-            settings: noLayoutConfig,
-            auth: authRoles.onlyGuest
-        },
-        // Facilitator login
-        {
-            path: 'sign-in/facilitator',
-            element: <FacilitatorSignInPageView />,
+            element: <MemberSignInPageView />, // We will repurpose this as the unified login or create a new one
             settings: noLayoutConfig,
             auth: authRoles.onlyGuest
         },

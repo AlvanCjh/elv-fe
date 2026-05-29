@@ -1,5 +1,6 @@
 'use client';
-import { FC, useState, useRef } from 'react';
+import { FC, useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { 
     Typography, Paper, Box, Button, IconButton, Dialog, 
     DialogTitle, DialogContent, DialogActions, TextField, 
@@ -15,6 +16,7 @@ import {
     useUpdateIncidentReport, useDeleteIncidentReport, 
     useDeleteIncidentPhoto, IncidentReport 
 } from './incidentApi';
+import { useServiceReports } from '../service-report/serviceApi';
 import { enqueueSnackbar } from 'notistack';
 import { format } from 'date-fns';
 import { API_BASE_URL } from '@/utils/api';
@@ -32,6 +34,9 @@ const IncidentReportPage: FC = () => {
     const { activeProjectId } = useProject();
     const [view, setView] = useState<'list' | 'form'>('list');
     const [editingIncident, setEditingIncident] = useState<IncidentReport | null>(null);
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => { setMounted(true); }, []);
+
     const [lightboxImage, setLightboxImage] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,21 +64,47 @@ const IncidentReportPage: FC = () => {
         verified_by: '',
         verified_designation: 'Customer Service Engineer',
         verified_date: format(new Date(), 'yyyy-MM-dd'),
+        linked_service_report_id: '' as number | '',
+        linkedServiceReport: null as any,
     });
 
     const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
     const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
 
     const { data: incidents = [], isLoading } = useIncidentReports(activeProjectId);
+    const { data: serviceReports = [] } = useServiceReports(activeProjectId);
     const addMutation = useAddIncidentReport();
     const updateMutation = useUpdateIncidentReport();
     const deleteMutation = useDeleteIncidentReport();
     const deletePhotoMutation = useDeleteIncidentPhoto();
 
+    // ── Filter state ──────────────────────────────────────────────
+    const [searchText, setSearchText] = useState('');
+    const [dateFrom, setDateFrom] = useState('');
+    const [dateTo, setDateTo] = useState('');
+
+    const filteredIncidents = useMemo(() => {
+        return incidents.filter(r => {
+            const q = searchText.toLowerCase();
+            const matchText = !q ||
+                (r.ir_no || '').toLowerCase().includes(q) ||
+                (r.reported_by || '').toLowerCase().includes(q) ||
+                (r.affected_equipment || '').toLowerCase().includes(q) ||
+                (r.incident_location || '').toLowerCase().includes(q) ||
+                (r.incident_description || '').toLowerCase().includes(q) ||
+                (r.incident_types || []).some(t => t.toLowerCase().includes(q));
+            const rDate = new Date(r.report_date);
+            const matchFrom = !dateFrom || rDate >= new Date(dateFrom);
+            const matchTo = !dateTo || rDate <= new Date(dateTo + 'T23:59:59');
+            return matchText && matchFrom && matchTo;
+        });
+    }, [incidents, searchText, dateFrom, dateTo]);
+    // ─────────────────────────────────────────────────────────────
+
     const renderPrintLayout = () => {
         const data = editingIncident || { ...formData, ir_no: 'DRAFT', photos: [] };
         return (
-            <div className="bg-white text-black font-sans mx-auto print:max-w-none print:w-full min-h-0 flex flex-col pt-8 print:pt-0 transform print:scale-[0.98] origin-top">
+            <div className="bg-white text-black font-sans mx-auto print:max-w-none print:w-full min-h-0 flex flex-col pt-8 print:!pt-0">
                 {/* Formal Header */}
                 <div className="flex justify-between items-end border-b-2 border-slate-800 pb-4 mb-8">
                     <div>
@@ -108,6 +139,17 @@ const IncidentReportPage: FC = () => {
                                 {data.incident_types?.includes('OTHERS') && data.incident_type_others_text && ` (${data.incident_type_others_text})`}
                             </td>
                         </tr>
+                        {data.linked_service_report_id && (
+                            <tr>
+                                <td className="border border-slate-800 p-2.5 bg-slate-50 font-bold uppercase text-[10px] tracking-wider text-slate-600">Assigned Service Report</td>
+                                <td className="border border-slate-800 p-2.5 font-semibold text-slate-900" colSpan={3}>
+                                    <div className="flex gap-2 items-center">
+                                        <span className="font-bold text-[10px] uppercase text-emerald-600 bg-emerald-50 px-2 rounded-md">Linked</span>
+                                        {data.linkedServiceReport?.service_report_no || `ID: ${data.linked_service_report_id}`}
+                                    </div>
+                                </td>
+                            </tr>
+                        )}
                         <tr>
                             <td className="border border-slate-800 p-2.5 bg-slate-50 font-bold uppercase text-[10px] tracking-wider text-slate-600">Scenario Priority</td>
                             <td className="border border-slate-800 p-2.5 font-bold uppercase text-slate-900" colSpan={3}>
@@ -161,42 +203,64 @@ const IncidentReportPage: FC = () => {
                     </table>
                 </div>
 
-                {/* Appendix: Photos */}
-                {data.photos && data.photos.length > 0 && (
-                    <div className="mt-8 page-break-before">
-                        <div className="border border-slate-800 p-2 bg-slate-50 font-bold uppercase text-[10px] tracking-widest text-slate-600 mb-6">Appendix: Photo Evidence</div>
-                        <div className="grid grid-cols-2 gap-6">
-                            {data.photos.map((photo, i) => (
-                                <div key={i} className="border border-slate-300 p-1 flex flex-col bg-slate-50 rounded-sm">
-                                    <div className="h-[300px] w-full bg-white border border-slate-200">
-                                        <img src={photo.id ? `${API_BASE_URL}/storage/${photo.photo_path}` : photoPreviews[i]} className="w-full h-full object-contain" alt="Appendix" />
+                {/* Photo Evidence Section */}
+                {(() => {
+                    // Build a unified photo list: server photos first, then unsaved local previews
+                    const serverPhotos = (data.photos || []).map((photo, i) => ({
+                        src: `${API_BASE_URL}/storage/${photo.photo_path}`,
+                        caption: photo.caption || '',
+                        key: `server-${photo.id || i}`,
+                    }));
+                    const localPhotos = photoPreviews.map((preview, i) => ({
+                        src: preview,
+                        caption: photoRemarks[i] || '',
+                        key: `local-${i}`,
+                    }));
+                    const allPhotos = [...serverPhotos, ...localPhotos];
+                    if (allPhotos.length === 0) return null;
+                    return (
+                        <div className="mt-12 page-break-before-always">
+                            <div className="border-l-4 border-slate-800 pl-4 py-2 bg-slate-50 font-black uppercase text-[12px] tracking-[0.2em] text-slate-800 mb-8 border-y border-r">
+                                Photo Evidence Documentation
+                            </div>
+                            <div className="grid grid-cols-2 gap-8">
+                                {allPhotos.map((photo, i) => (
+                                    <div key={photo.key} className="photo-block border border-slate-800 p-2 flex flex-col bg-white">
+                                        <div className="h-[350px] w-full bg-white flex items-center justify-center overflow-hidden border border-slate-100">
+                                            <img
+                                                src={photo.src}
+                                                className="max-w-full max-h-full object-contain block"
+                                                alt={`Photo ${i + 1}`}
+                                            />
+                                        </div>
+                                        <div className="mt-4 text-[10px] font-black uppercase text-center text-slate-800 tracking-widest border-t border-slate-100 pt-2 bg-slate-50/50 flex-1 flex items-center justify-center px-4">
+                                            {photo.caption || `Figure ${i + 1}`}
+                                        </div>
                                     </div>
-                                    <div className="mt-3 text-[10px] font-bold uppercase text-center text-slate-600 tracking-wider">
-                                        " {photo.id ? (photo.caption || `Figure ${i + 1}`) : (photoRemarks[i] || `New Image ${i + 1}`)} "
-                                    </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    );
+                })()}
 
-                <div className="flex-1 min-h-[40px]"></div>
+
+                <div className="flex-1 min-h-[60px]"></div>
 
                 {/* Verified By */}
-                <div className="mt-16 pt-10 border-t-2 border-slate-800 grid grid-cols-2 gap-16">
-                    <div>
-                        <Typography className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-8">Verified By Representative:</Typography>
-                        <div className="border-b border-slate-800 pb-2 mb-2">
-                            <Typography className="text-sm font-black uppercase text-slate-800">{data.verified_by || '___________________________'}</Typography>
+                <div className="mt-auto pt-10 border-t-2 border-slate-800 grid grid-cols-2 gap-20">
+                    <div className="photo-block flex flex-col h-full">
+                        <Typography className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-10">I. Field Verification:</Typography>
+                        <div className="mt-auto border-b-2 border-slate-800 pb-3 mb-3">
+                            <Typography className="text-[15px] font-black uppercase text-slate-900 tracking-tight leading-none min-h-[15px]">{data.reported_by || '___________________________'}</Typography>
                         </div>
-                        <Typography className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">{data.verified_designation || 'Signatory Representative'}</Typography>
+                        <Typography className="text-[11px] font-black uppercase text-slate-500 tracking-[0.1em]">{data.role_of_recorded || 'Technician / Engineer'}</Typography>
                     </div>
-                    <div className="text-right">
-                        <Typography className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-8">Approval & Endorsement:</Typography>
-                        <div className="border-b border-slate-800 pb-2 mb-2">
-                            <Typography className="text-sm font-black uppercase italic text-slate-800">___________________________</Typography>
+                    <div className="text-right photo-block flex flex-col h-full">
+                        <Typography className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-10">II. Management Endorsement:</Typography>
+                        <div className="mt-auto border-b-2 border-slate-800 pb-3 mb-3">
+                            <Typography className="text-[15px] font-black uppercase italic text-slate-300 tracking-tight leading-none min-h-[15px]">Signature & Official Stamp</Typography>
                         </div>
-                        <Typography className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Date: _________________</Typography>
+                        <Typography className="text-[11px] font-black uppercase text-slate-500 tracking-[0.1em]">Date: {format(new Date(), 'dd / MM / yyyy')}</Typography>
                     </div>
                 </div>
             </div>
@@ -227,6 +291,8 @@ const IncidentReportPage: FC = () => {
                 verified_by: incident.verified_by || '',
                 verified_designation: incident.verified_designation || '',
                 verified_date: incident.verified_date ? incident.verified_date.split('T')[0] : '',
+                linked_service_report_id: incident.linked_service_report_id || '',
+                linkedServiceReport: incident.linkedServiceReport || null,
             });
         } else {
             setEditingIncident(null);
@@ -251,6 +317,8 @@ const IncidentReportPage: FC = () => {
                 verified_by: '',
                 verified_designation: 'Customer Service Engineer',
                 verified_date: format(new Date(), 'yyyy-MM-dd'),
+                linked_service_report_id: '',
+                linkedServiceReport: null,
             });
         }
         setSelectedPhotos([]);
@@ -298,10 +366,12 @@ const IncidentReportPage: FC = () => {
 
         const data = new FormData();
         Object.entries(formData).forEach(([key, value]) => {
+            if (key === 'linkedServiceReport') return;
+            if (value === null) return;
             if (Array.isArray(value)) {
                 value.forEach(v => data.append(`${key}[]`, v));
             } else {
-                data.append(key, value || '');
+                data.append(key, typeof value === 'number' ? String(value) : String(value));
             }
         });
         data.append('project_id', activeProjectId.toString());
@@ -319,6 +389,9 @@ const IncidentReportPage: FC = () => {
                 await addMutation.mutateAsync(data);
                 enqueueSnackbar('Incident report submitted', { variant: 'success' });
             }
+            setSelectedPhotos([]);
+            setPhotoPreviews([]);
+            setPhotoRemarks([]);
             setView('list');
         } catch (error) {
             enqueueSnackbar('Failed to save report', { variant: 'error' });
@@ -407,6 +480,8 @@ const IncidentReportPage: FC = () => {
                 verified_by: parsedData.verified_by,
                 verified_designation: parsedData.verified_designation,
                 verified_date: parsedData.verified_date,
+                linked_service_report_id: '',
+                linkedServiceReport: null,
             });
             setSelectedPhotos([]);
             setPhotoPreviews([]);
@@ -431,8 +506,18 @@ const IncidentReportPage: FC = () => {
     }
 
     return (
-        <div className="w-full min-h-screen bg-slate-50 dark:bg-slate-950 p-6 transition-all">
-            <div className="max-w-7xl mx-auto">
+        <div className="w-full min-h-screen bg-slate-50 dark:bg-slate-950 p-6 print:p-0 print:min-h-0 transition-all">
+            <style dangerouslySetInnerHTML={{ __html: `
+                @media print {
+                    html, body { background: white !important; }
+                    /* display:none removes layout space (no blank pages) */
+                    body > *:not(#print-report-container) { display: none !important; }
+                    @page { margin: 1.5cm; size: A4 portrait; }
+                }
+            `}} />
+
+
+            <div id="normal-app-container" className="max-w-7xl mx-auto print-hidden-wrapper">
                 
                 <AnimatePresence mode="wait">
                     {view === 'list' ? (
@@ -479,8 +564,67 @@ const IncidentReportPage: FC = () => {
                                 </div>
                             </div>
 
+                            {/* ── Filter / Search Bar ── */}
+                            <div className="mb-6 flex flex-col sm:flex-row gap-3 p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                                {/* Search */}
+                                <div className="flex-1 flex items-center gap-2 bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2 border border-slate-200 dark:border-slate-700">
+                                    <FuseSvgIcon size={16} className="text-slate-400 shrink-0">heroicons-outline:magnifying-glass</FuseSvgIcon>
+                                    <input
+                                        type="text"
+                                        placeholder="Search by IR No, equipment, reporter, type…"
+                                        value={searchText}
+                                        onChange={e => setSearchText(e.target.value)}
+                                        className="flex-1 bg-transparent text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none placeholder:text-slate-400 placeholder:font-normal"
+                                    />
+                                    {searchText && (
+                                        <button onClick={() => setSearchText('')} className="text-slate-300 hover:text-rose-400 transition-colors">
+                                            <FuseSvgIcon size={14}>heroicons-outline:x-mark</FuseSvgIcon>
+                                        </button>
+                                    )}
+                                </div>
+                                {/* Date From */}
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider whitespace-nowrap">From</span>
+                                    <input
+                                        type="date"
+                                        value={dateFrom}
+                                        onChange={e => setDateFrom(e.target.value)}
+                                        className="text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-rose-400 transition-colors"
+                                    />
+                                </div>
+                                {/* Date To */}
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider whitespace-nowrap">To</span>
+                                    <input
+                                        type="date"
+                                        value={dateTo}
+                                        onChange={e => setDateTo(e.target.value)}
+                                        className="text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-rose-400 transition-colors"
+                                    />
+                                </div>
+                                {/* Clear filters */}
+                                {(dateFrom || dateTo || searchText) && (
+                                    <button
+                                        onClick={() => { setSearchText(''); setDateFrom(''); setDateTo(''); }}
+                                        className="flex items-center gap-1.5 text-[11px] font-black uppercase text-rose-500 hover:text-rose-700 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 rounded-xl px-3 py-2 transition-all whitespace-nowrap"
+                                    >
+                                        <FuseSvgIcon size={12}>heroicons-outline:x-circle</FuseSvgIcon>
+                                        Clear
+                                    </button>
+                                )}
+                                {/* Results count */}
+                                <div className="flex items-center px-2 text-[11px] font-black text-slate-400 whitespace-nowrap">
+                                    {filteredIncidents.length} / {incidents.length}
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {incidents.map(report => (
+                                {filteredIncidents.length === 0 ? (
+                                    <div className="col-span-3 py-20 text-center">
+                                        <FuseSvgIcon size={40} className="text-slate-200 mx-auto mb-3">heroicons-outline:magnifying-glass</FuseSvgIcon>
+                                        <p className="text-slate-400 font-black uppercase tracking-widest text-sm">No reports match your filters</p>
+                                    </div>
+                                ) : filteredIncidents.map(report => (
                                     <Card 
                                         key={report.id}
                                         className="rounded-[2.5rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden group hover:shadow-2xl transition-all hover:-translate-y-1"
@@ -491,7 +635,35 @@ const IncidentReportPage: FC = () => {
                                                     {report.ir_no}
                                                 </div>
                                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <IconButton size="small" onClick={(e) => { e.stopPropagation(); setEditingIncident(report); setTimeout(() => window.print(), 100); }} className="text-slate-400 hover:bg-slate-100"><FuseSvgIcon size={18}>heroicons-outline:printer</FuseSvgIcon></IconButton>
+                                                    <IconButton 
+                                                        size="small" 
+                                                        onClick={(e) => { 
+                                                            e.stopPropagation(); 
+                                                            setSelectedPhotos([]);
+                                                            setPhotoPreviews([]);
+                                                            setPhotoRemarks([]);
+                                                            setEditingIncident(report);
+                                                            // Wait for React to commit the new state, then wait for images
+                                                            requestAnimationFrame(() => requestAnimationFrame(async () => {
+                                                                const printContainer = document.getElementById('print-report-container');
+                                                                if (printContainer) {
+                                                                    const images = Array.from(printContainer.getElementsByTagName('img'));
+                                                                    await Promise.all(images.map(img =>
+                                                                        img.complete ? Promise.resolve() : new Promise(resolve => {
+                                                                            img.onload = resolve;
+                                                                            img.onerror = resolve;
+                                                                        })
+                                                                    ));
+                                                                    setTimeout(() => window.print(), 150);
+                                                                } else {
+                                                                    window.print();
+                                                                }
+                                                            }));
+                                                        }} 
+                                                        className="text-slate-400 hover:bg-slate-100"
+                                                    >
+                                                        <FuseSvgIcon size={18}>heroicons-outline:printer</FuseSvgIcon>
+                                                    </IconButton>
                                                     <IconButton size="small" onClick={() => handleOpenForm(report)} className="text-indigo-500 hover:bg-indigo-50"><FuseSvgIcon size={18}>heroicons-outline:pencil-square</FuseSvgIcon></IconButton>
                                                     <IconButton size="small" onClick={() => handleDelete(report.id)} className="text-rose-500 hover:bg-rose-50"><FuseSvgIcon size={18}>heroicons-outline:trash</FuseSvgIcon></IconButton>
                                                 </div>
@@ -505,6 +677,15 @@ const IncidentReportPage: FC = () => {
                                                 ))}
                                                 {report.incident_types.length > 3 && <Chip label={`+${report.incident_types.length - 3}`} size="small" className="h-5 text-[9px] font-black bg-slate-100 text-slate-600" />}
                                             </div>
+
+                                            {report.linked_service_report_id && (
+                                                <div className="flex items-center gap-2 mb-4 bg-emerald-50 dark:bg-emerald-900/20 w-fit px-3 py-1.5 rounded-lg border border-emerald-100 dark:border-emerald-800">
+                                                    <FuseSvgIcon size={14} className="text-emerald-500">heroicons-outline:link</FuseSvgIcon>
+                                                    <Typography className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+                                                        {report.linkedServiceReport?.service_report_no || `SR-ID: ${report.linked_service_report_id}`}
+                                                    </Typography>
+                                                </div>
+                                            )}
 
                                             <Divider className="mb-4 opacity-50" />
                                             
@@ -541,7 +722,22 @@ const IncidentReportPage: FC = () => {
                                         <Button
                                             variant="outlined"
                                             startIcon={<FuseSvgIcon size={20}>heroicons-outline:printer</FuseSvgIcon>}
-                                            onClick={() => window.print()}
+                                            onClick={async () => {
+                                                window.scrollTo(0, 0);
+                                                const printContainer = document.getElementById('print-report-container');
+                                                if (printContainer) {
+                                                    const images = Array.from(printContainer.getElementsByTagName('img'));
+                                                    await Promise.all(images.map(img =>
+                                                        img.complete ? Promise.resolve() : new Promise(resolve => {
+                                                            img.onload = resolve;
+                                                            img.onerror = resolve;
+                                                        })
+                                                    ));
+                                                    setTimeout(() => window.print(), 500);
+                                                } else {
+                                                    window.print();
+                                                }
+                                            }}
                                             className="rounded-xl border-slate-700 text-white hover:bg-slate-800 font-black px-6"
                                         >
                                             Print PDF
@@ -656,6 +852,22 @@ const IncidentReportPage: FC = () => {
                                                     <InputLabel>Incident Scenario</InputLabel>
                                                     <Select value={formData.incident_scenario} onChange={e => setFormData({...formData, incident_scenario: e.target.value})} sx={{ borderRadius: '16px', fontWeight: 800 }} label="Incident Scenario">
                                                         {SCENARIOS.map(s => <MenuItem key={s} value={s} className="font-black uppercase">{s}</MenuItem>)}
+                                                    </Select>
+                                                </FormControl>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, md: 6 }}>
+                                                <FormControl fullWidth>
+                                                    <InputLabel>Link Service Report (Optional)</InputLabel>
+                                                    <Select
+                                                        value={formData.linked_service_report_id || ''}
+                                                        onChange={e => setFormData({ ...formData, linked_service_report_id: e.target.value as number | '' })}
+                                                        label="Link Service Report (Optional)"
+                                                        sx={{ borderRadius: '16px', fontWeight: 800 }}
+                                                    >
+                                                        <MenuItem value=""><em>None</em></MenuItem>
+                                                        {serviceReports.map((sr) => (
+                                                            <MenuItem key={sr.id} value={sr.id}>{sr.service_report_no} - {sr.company_name}</MenuItem>
+                                                        ))}
                                                     </Select>
                                                 </FormControl>
                                             </Grid>
@@ -836,42 +1048,62 @@ const IncidentReportPage: FC = () => {
                 </div>
             </Dialog>
 
-            {/* Hidden Print Layout */}
-            <div id="print-report-container" className="hidden print:block bg-white min-h-screen">
-                <style dangerouslySetInnerHTML={{ __html: `
-                    @media print {
-                        * { 
-                            -webkit-print-color-adjust: exact !important; 
-                            print-color-adjust: exact !important; 
-                            color-adjust: exact !important;
-                        }
-                        /* Hide navigation, sidebar, and other UI layers specifically */
-                        header, nav, aside, [role="navigation"], .navbar, .sidebar { 
-                            display: none !important; 
-                        }
-                        
-                        body * { visibility: hidden !important; }
-                        #print-report-container, #print-report-container * { visibility: visible !important; }
-                        #print-report-container { 
-                            position: fixed !important;
-                            left: 0 !important;
-                            top: 0 !important;
-                            width: 100% !important;
-                            height: auto !important;
-                            display: block !important; 
-                            margin: 0 !important;
-                            padding: 15mm !important;
-                            box-sizing: border-box !important;
-                            background: white !important;
-                            z-index: 9999999 !important;
-                        }
-                        @page { margin: 0; size: A4 portrait; }
-                    }
-                `}} />
-                <div className="w-full">
-                    {renderPrintLayout()}
-                </div>
+            {/* Forced Image Preloader - Uses opaque negligible dimensions to force eager network decoding */}
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '1px', height: '1px', overflow: 'hidden', opacity: 0.001, pointerEvents: 'none', zIndex: -1 }}>
+                {(editingIncident?.photos || []).map(p => <img key={`preload-server-${p.id}`} src={`${API_BASE_URL}/storage/${p.photo_path}`} alt="" loading="eager" crossOrigin="anonymous" />)}
+                {photoPreviews.map((p, i) => <img key={`preload-local-${i}`} src={p} alt="" loading="eager" />)}
             </div>
+
+            {/* Print Layout - Positioned off-screen to force eager image loading in the browser thread */}
+            {/* Print Portal - Direct child of body to guarantee layout freedom */}
+            {mounted && createPortal(
+                <div id="print-report-container" style={{ position: 'fixed', top: -99999, left: -99999, pointerEvents: 'none' }}>
+                    <style dangerouslySetInnerHTML={{
+                        __html: `
+                        @media print {
+                            * { 
+                                -webkit-print-color-adjust: exact !important; 
+                                print-color-adjust: exact !important; 
+                                color-adjust: exact !important;
+                            }
+
+                            /* Body visibility:hidden is set in the main style above.
+                               Everything inside our portal is made visible again. */
+                            #print-report-container {
+                                display: block !important;
+                                visibility: visible !important;
+                                position: static !important;
+                                width: 100% !important;
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                background: white !important;
+                                pointer-events: auto !important;
+                            }
+
+                            #print-report-container * {
+                                visibility: visible !important;
+                            }
+
+                            #print-report-container img {
+                                display: block !important;
+                                max-width: 100% !important;
+                                height: auto !important;
+                                object-fit: contain !important;
+                            }
+
+                            table, tr, td, div { page-break-inside: auto !important; }
+                            tr, .photo-block { page-break-inside: avoid !important; }
+                            .page-break-before-always { page-break-before: always !important; }
+
+                            @page { margin: 1.5cm; size: A4 portrait; }
+                        }
+                    `}} />
+                    <div className="w-full">
+                        {renderPrintLayout()}
+                    </div>
+                </div>,
+                document.body
+            )}
         </div>
     );
 };

@@ -3,17 +3,19 @@ import { User } from '@auth/user';
 import useAuth from '@fuse/core/FuseAuthProvider/useAuth';
 import _ from 'lodash';
 import setIn from '@/utils/setIn';
+import useJwtAuth from './services/jwt/useJwtAuth';
 
 type useUser = {
 	data: User | null;
 	isGuest: boolean;
 	updateUser: (updates: Partial<User>) => Promise<User | undefined>;
 	updateUserSettings: (newSettings: User['settings']) => Promise<User['settings'] | undefined>;
+	setUser: (U: User) => void;
 	signOut: () => void;
 };
-
 function useUser(): useUser {
 	const { authState, signOut, updateUser } = useAuth();
+	const { setUser } = useJwtAuth();
 	const user = authState?.user as User;
 	const isGuest = useMemo(() => !user?.role || user?.role?.length === 0, [user]);
 
@@ -61,7 +63,8 @@ function useUser(): useUser {
 		isGuest,
 		signOut: handleSignOut,
 		updateUser: handleUpdateUser,
-		updateUserSettings: handleUpdateUserSettings
+		updateUserSettings: handleUpdateUserSettings,
+		setUser: setUser
 	};
 }
 

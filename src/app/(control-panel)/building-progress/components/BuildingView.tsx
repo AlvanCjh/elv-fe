@@ -322,7 +322,7 @@ const BuildingView: FC<BuildingViewProps> = ({ buildingId, onSelectFloor }) => {
                                         {floor.floor_number}
                                     </div>
 
-                                    <div className="flex flex-col min-w-0 flex-1">
+                                    <div className="flex flex-col min-w-0 flex-1 pr-6">
                                         <span
                                             className="text-sm font-semibold truncate transition-colors duration-150"
                                             style={{ color: isHovered ? color : undefined }}
@@ -335,7 +335,26 @@ const BuildingView: FC<BuildingViewProps> = ({ buildingId, onSelectFloor }) => {
                                     </div>
                                 </button>
                                 
-
+                                {isSupervisor && (
+                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 transition-opacity z-10">
+                                        <Tooltip title="Delete Floor">
+                                            <IconButton 
+                                                size="small" 
+                                                color="error" 
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    if (window.confirm(`Are you sure you want to delete floor ${floor.floor_number}?`)) {
+                                                        deleteFloorMutation.mutate(floor.id);
+                                                    }
+                                                }}
+                                                disabled={deleteFloorMutation.isPending}
+                                            >
+                                                <FuseSvgIcon size={16}>heroicons-outline:trash</FuseSvgIcon>
+                                            </IconButton>
+                                        </Tooltip>
+                                    </div>
+                                )}
                             </Box>
                         );
                     })}

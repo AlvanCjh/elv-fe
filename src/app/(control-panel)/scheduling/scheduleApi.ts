@@ -233,3 +233,121 @@ export const updateRiskAssessment = async (id: number, data: any): Promise<RiskA
 export const deleteRiskAssessment = async (id: number): Promise<any> => {
     return api.delete(`risk-assessments/${id}`).json();
 };
+export interface Diagram {
+    id: number;
+    project_id: number;
+    uploaded_by_user_id: string;
+    project_title: string;
+    file_path?: string;
+    status: 'approve' | 'submitted';
+    uploader?: User;
+    created_at: string;
+}
+
+export const fetchDiagrams = async (type: 'drawing' | 'schematic', projectId: string): Promise<Diagram[]> => {
+    return api.get(`diagrams/${type}`, { searchParams: { project_id: projectId } }).json<Diagram[]>();
+};
+
+export const useDiagrams = (type: 'drawing' | 'schematic') => {
+    const { activeProjectId } = useProject();
+    return useQuery({
+        queryKey: ['diagrams', type, activeProjectId],
+        queryFn: () => fetchDiagrams(type, activeProjectId!.toString()),
+        enabled: !!activeProjectId,
+    });
+};
+
+export const createDiagram = async (type: 'drawing' | 'schematic', formData: FormData): Promise<Diagram> => {
+    return api.post(`diagrams/${type}`, { body: formData }).json<Diagram>();
+};
+
+export const updateDiagram = async (type: 'drawing' | 'schematic', id: number, formData: FormData): Promise<Diagram> => {
+    // Note: We use POST with {id} for update because of multipart/form-data limitations with PUT in Laravel
+    return api.post(`diagrams/${type}/${id}`, { body: formData }).json<Diagram>();
+};
+
+export const deleteDiagram = async (type: 'drawing' | 'schematic', id: number): Promise<any> => {
+    return api.delete(`diagrams/${type}/${id}`).json();
+};
+
+// --- Timeline Tasks Variables ---
+
+export interface TimelineTask {
+    id: number;
+    project_id: number;
+    parent_id?: number | null;
+    name: string;
+    expected_start_date: string;
+    expected_end_date: string;
+    actual_start_date?: string | null;
+    actual_end_date?: string | null;
+    edit_reason?: string | null;
+}
+
+export interface TimelineHistory {
+    id: number;
+    project_id: number;
+    timeline_task_id?: number | null;
+    user_id: number;
+    entity_name: string;
+    change_details: string;
+    reason: string;
+    created_at: string;
+    user?: User;
+}
+
+export const fetchTimelineTasks = async (projectId: string, parentId?: string | null): Promise<TimelineTask[]> => {
+    const searchParams: any = {};
+    if (parentId !== undefined) searchParams.parent_id = parentId;
+    return api.get('timeline-tasks', { searchParams }).json<TimelineTask[]>();
+};
+
+export const fetchTimelineTask = async (id: number): Promise<TimelineTask> => {
+    return api.get(`timeline-tasks/${id}`).json<TimelineTask>();
+};
+
+export const useTimelineTasks = (parentId?: string | null) => {
+    const { activeProjectId } = useProject();
+    return useQuery({
+        queryKey: ['timeline-tasks', activeProjectId, parentId],
+        queryFn: () => fetchTimelineTasks(activeProjectId!.toString(), parentId),
+        enabled: !!activeProjectId,
+    });
+};
+
+export const useTimelineTask = (id?: number | null) => {
+    return useQuery({
+        queryKey: ['timeline-task', id],
+        queryFn: () => fetchTimelineTask(id!),
+        enabled: !!id,
+    });
+};
+
+export const createTimelineTask = async (data: any): Promise<TimelineTask> => {
+    return api.post('timeline-tasks', { json: data }).json<TimelineTask>();
+};
+
+export const updateTimelineTask = async (id: number, data: any): Promise<TimelineTask> => {
+    return api.put(`timeline-tasks/${id}`, { json: data }).json<TimelineTask>();
+};
+
+export const deleteTimelineTask = async (id: number): Promise<any> => {
+    return api.delete(`timeline-tasks/${id}`).json();
+};
+
+export const updateProjectBounds = async (projectId: number, data: { start_date?: string, end_date?: string, actual_start_date?: string, actual_end_date?: string, edit_reason?: string }): Promise<any> => {
+    return api.put(`projects/${projectId}`, { json: data }).json();
+};
+
+export const fetchTimelineHistory = async (projectId: string): Promise<TimelineHistory[]> => {
+    return api.get('timeline/history').json<TimelineHistory[]>();
+};
+
+export const useTimelineHistory = () => {
+    const { activeProjectId } = useProject();
+    return useQuery({
+        queryKey: ['timeline-history', activeProjectId],
+        queryFn: () => fetchTimelineHistory(activeProjectId!.toString()),
+        enabled: !!activeProjectId,
+    });
+};

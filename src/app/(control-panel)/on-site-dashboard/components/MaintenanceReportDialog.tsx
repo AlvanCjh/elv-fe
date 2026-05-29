@@ -17,6 +17,7 @@ import { createMaintenanceReport, updateMaintenanceReport, deleteMaintenanceRepo
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import { useProject } from '@/context/ProjectContext';
 import useUser from '@auth/useUser';
+import { enqueueSnackbar } from 'notistack';
 
 interface MaintenanceReportDialogProps {
     open: boolean;
@@ -87,7 +88,19 @@ function MaintenanceReportDialog({ open, onClose, report, initialDate }: Mainten
         mutationFn: createMaintenanceReport,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['maintenance-reports'] });
+            enqueueSnackbar('Maintenance report created successfully', { variant: 'success' });
             onClose();
+        },
+        onError: async (error: any) => {
+            let errorMsg = 'Failed to create report';
+            if (error.response) {
+                try {
+                    const errorData = await error.response.json();
+                    if (errorData.message) errorMsg = errorData.message;
+                    if (errorData.errors) errorMsg += ': ' + Object.values(errorData.errors).flat().join(', ');
+                } catch (e) {}
+            }
+            enqueueSnackbar(errorMsg, { variant: 'error' });
         }
     });
 
@@ -95,7 +108,19 @@ function MaintenanceReportDialog({ open, onClose, report, initialDate }: Mainten
         mutationFn: (data: { id: number; formData: FormData }) => updateMaintenanceReport(data.id, data.formData),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['maintenance-reports'] });
+            enqueueSnackbar('Maintenance report updated successfully', { variant: 'success' });
             onClose();
+        },
+        onError: async (error: any) => {
+            let errorMsg = 'Failed to update report';
+            if (error.response) {
+                try {
+                    const errorData = await error.response.json();
+                    if (errorData.message) errorMsg = errorData.message;
+                    if (errorData.errors) errorMsg += ': ' + Object.values(errorData.errors).flat().join(', ');
+                } catch (e) {}
+            }
+            enqueueSnackbar(errorMsg, { variant: 'error' });
         }
     });
 

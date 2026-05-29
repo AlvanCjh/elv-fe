@@ -168,6 +168,7 @@ interface Project {
   id: number;
   name: string;
   description: string | null;
+  type: 'ssdc' | 'construction';
   buildings?: {
     id: number;
     name: string;
@@ -188,7 +189,7 @@ interface BuildingPayload {
   longitude: string;
 }
 
-const createProject = async (data: { name: string; description?: string; building?: BuildingPayload }) => {
+const createProject = async (data: { name: string; description?: string; type?: string; building?: BuildingPayload }) => {
   return await api.post("projects", { json: data }).json();
 };
 
@@ -209,6 +210,7 @@ export default function SelectProjectPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectDesc, setNewProjectDesc] = useState("");
+  const [newProjectType, setNewProjectType] = useState<'construction' | 'ssdc'>('construction');
   const [newBuildingName, setNewBuildingName] = useState("");
   const [newBuildingFloors, setNewBuildingFloors] = useState<number>(1);
   const [pinLocation, setPinLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -233,6 +235,7 @@ export default function SelectProjectPage() {
       setIsCreateOpen(false);
       setNewProjectName("");
       setNewProjectDesc("");
+      setNewProjectType('construction');
       setNewBuildingName("");
       setNewBuildingFloors(1);
       setPinLocation(null);
@@ -265,11 +268,56 @@ export default function SelectProjectPage() {
     },
   });
 
+  // Check if user has supervisor/admin level access
   const isSupervisor = Array.isArray(user?.role)
-    ? user?.role.includes("supervisor")
-    : user?.role === "supervisor";
+    ? user?.role.some(r => ['supervisor', 'superadmin', 'admin'].includes(r?.toString()?.toLowerCase()))
+    : ['supervisor', 'superadmin', 'admin'].includes(user?.role?.toString()?.toLowerCase());
+
+  const isELV = Array.isArray(user?.role)
+    ? user?.role.some(r => ['elv'].includes(r?.toString()?.toLowerCase()))
+    : ['elv'].includes(user?.role?.toString()?.toLowerCase());
+
+  const isFacilitator = Array.isArray(user?.role)
+    ? user?.role.some(r => ['facilitator'].includes(r?.toString()?.toLowerCase()))
+    : ['facilitator'].includes(user?.role?.toString()?.toLowerCase());
+
+  const isMember = Array.isArray(user?.role)
+    ? user?.role.some(r => ['member'].includes(r?.toString()?.toLowerCase()))
+    : ['member'].includes(user?.role?.toString()?.toLowerCase());
+
+  // Only supervisors and ELV roles can toggle — facilitators are locked to SSDC, members locked to construction
+  const showViewModeToggle = isSupervisor || isELV;
 
   const { viewMode, setViewMode } = useProject();
+
+  // Lock view mode based on role (run once on mount / when role resolves)
+  useEffect(() => {
+    if (isFacilitator && !isSupervisor && !isELV) {
+      setViewMode('ssdc');
+    } else if (isMember && !isSupervisor && !isFacilitator && !isELV) {
+      setViewMode('construction');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFacilitator, isMember, isSupervisor, isELV]);
+
+  const handleSetViewMode = (mode: any) => {
+      setViewMode(mode);
+  };
+
+  // Filter projects by role:  
+  //  • ELV/Supervisor → see all projects (toggle to switch view)
+  //  • Facilitator (not elv/supervisor) → ssdc projects only
+  //  • Member (not elv/supervisor/facilitator) → construction projects only
+  const filteredProjects = useMemo(() => {
+    if (!projects) return [];
+    if (isSupervisor || isELV) {
+      // Supervisors/ELV see projects filtered by their chosen viewMode
+      return projects.filter(p => p.type === viewMode);
+    }
+    if (isFacilitator) return projects.filter(p => p.type === 'ssdc');
+    if (isMember) return projects.filter(p => p.type === 'construction');
+    return projects;
+  }, [projects, isSupervisor, isELV, isFacilitator, isMember, viewMode]);
 
   const handleEnterWorkspace = (id: number) => {
     const project = projects?.find(p => p.id === id);
@@ -279,17 +327,11 @@ export default function SelectProjectPage() {
         setActiveProjectId(id);
     }
     
-    // Always direct facilitators to SSDC Ops by default, but allow Supervisors/Members to choose via slider
-    if (user?.role === 'facilitator') {
-       navigate("/facilitator");
-       return;
-    }
-
-    // Rely on the slider choice for others (and facilitators if they use the toggle)
+    // Navigate based on view mode selection
     if (viewMode === 'ssdc') {
       navigate("/facilitator");
     } else {
-      navigate("/building-progress");
+      navigate("/on-site-dashboard");
     }
   };
 
@@ -310,6 +352,7 @@ export default function SelectProjectPage() {
     createMutation.mutate({
       name: newProjectName,
       description: newProjectDesc,
+      type: newProjectType,
       building: buildingPayload,
     });
   };
@@ -334,52 +377,73 @@ export default function SelectProjectPage() {
               Select Workspace
             </Typography>
 
-            <div className="mb-4">
-              <ToggleButtonGroup
-                color="primary"
-                value={viewMode}
-                exclusive
-                onChange={(e, mode) => mode !== null && setViewMode(mode)}
-                aria-label="View Mode"
-                size="small"
-                sx={{
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  borderRadius: '8px',
-                  padding: '4px',
-                  '.MuiToggleButton-root': {
-                    border: 'none',
-                    color: '#94a3b8',
-                    fontWeight: 'bold',
-                    textTransform: 'none',
-                    padding: '6px 16px',
-                    borderRadius: '6px !important',
-                    lineHeight: 1.2,
-                    '&.Mui-selected': {
-                      backgroundColor: '#3b82f6',
-                      color: 'white',
-                      boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)',
-                      pointerEvents: 'none'
-                    }
-                  }
-                }}
-              >
-                <ToggleButton value="construction">Construction</ToggleButton>
-                <ToggleButton value="ssdc">SSDC Operations</ToggleButton>
-              </ToggleButtonGroup>
-            </div>
+            {/* View Mode Toggle — Supervisors only */}
+            {showViewModeToggle && (
+                <div className="mb-4">
+                  <ToggleButtonGroup
+                    color="primary"
+                    value={viewMode}
+                    exclusive
+                    onChange={(e, mode) => mode !== null && handleSetViewMode(mode)}
+                    aria-label="View Mode"
+                    size="small"
+                    sx={{
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      borderRadius: '8px',
+                      padding: '4px',
+                      '.MuiToggleButton-root': {
+                        border: 'none',
+                        color: '#94a3b8',
+                        fontWeight: 'bold',
+                        textTransform: 'none',
+                        padding: '6px 16px',
+                        borderRadius: '6px !important',
+                        lineHeight: 1.2,
+                        '&.Mui-selected': {
+                          backgroundColor: '#3b82f6',
+                          color: 'white',
+                          boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)',
+                          pointerEvents: 'none'
+                        }
+                      }
+                    }}
+                  >
+                    <ToggleButton value="construction">Construction</ToggleButton>
+                    <ToggleButton value="ssdc">SSDC Operations</ToggleButton>
+                  </ToggleButtonGroup>
+                </div>
+            )}
+
+            {/* Role-locked badge for non-supervisor users */}
+            {!showViewModeToggle && (
+              <div className="mb-4">
+                <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest border ${
+                  isFacilitator
+                    ? 'bg-amber-500/10 text-amber-300 border-amber-500/20'
+                    : 'bg-blue-500/10 text-blue-300 border-blue-500/20'
+                }`}>
+                  <span className={`w-2 h-2 rounded-full animate-pulse ${
+                    isFacilitator ? 'bg-amber-400' : 'bg-blue-400'
+                  }`} />
+                  {isFacilitator ? 'SSDC Operations View' : 'Construction View'}
+                </span>
+              </div>
+            )}
 
             <div className="flex items-center gap-3">
               <Typography variant="caption" className="text-slate-400 font-bold uppercase tracking-widest">
-                {projects?.length || 0} projects
+                {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
               </Typography>
               <div className="w-1 h-1 rounded-full bg-slate-600"></div>
               <Typography variant="caption" className="text-blue-400 font-bold uppercase tracking-widest">
                 tap a pin to resume
               </Typography>
-              <div className="w-1 h-1 rounded-full bg-slate-600"></div>
-              <Typography variant="caption" className="text-orange-400 font-bold uppercase tracking-widest">
-                tap map to create new
-              </Typography>
+              {isSupervisor && <>
+                <div className="w-1 h-1 rounded-full bg-slate-600"></div>
+                <Typography variant="caption" className="text-orange-400 font-bold uppercase tracking-widest">
+                  tap map to create new
+                </Typography>
+              </>}
             </div>
           </div>
 
@@ -412,8 +476,8 @@ export default function SelectProjectPage() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
           />
           
-          {/* Existing Project Pins */}
-          {projectsWithLocation.map(project => (
+          {/* Existing Project Pins — filtered by role */}
+          {filteredProjects.filter(p => p.buildings?.some(b => b.latitude && b.longitude)).map(project => (
             <ProjectMarker 
               key={project.id} 
               project={project} 
@@ -421,12 +485,12 @@ export default function SelectProjectPage() {
             />
           ))}
 
-          {/* New Project Pin */}
-          <LocationMarker 
+          {/* New Project Pin — Supervisor only */}
+          {isSupervisor && <LocationMarker 
             position={pinLocation} 
             setPosition={setPinLocation} 
             onOpenForm={() => setIsCreateOpen(true)}
-          />
+          />}
 
           <ZoomControls />
         </MapContainer>
@@ -444,7 +508,7 @@ export default function SelectProjectPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-white/10">
-              {projectsWithoutLocation.map(project => (
+              {filteredProjects.filter(p => !p.buildings?.some(b => b.latitude && b.longitude)).map(project => (
                 <div 
                   key={project.id}
                   onClick={() => handleEnterWorkspace(project.id)}
@@ -453,17 +517,22 @@ export default function SelectProjectPage() {
                   <div className="absolute inset-0 bg-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   <div className="relative flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-blue-500 group-hover:animate-pulse"></div>
+                      <div className={`w-2 h-2 rounded-full group-hover:animate-pulse ${
+                        project.type === 'ssdc' ? 'bg-amber-400' : 'bg-blue-500'
+                      }`}></div>
                       <Typography className="font-bold text-sm text-slate-200 group-hover:text-white transition-colors">
                         {project.name}
                       </Typography>
+                      {project.type === 'ssdc' && (
+                        <span className="text-[9px] font-black uppercase tracking-wider text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded">SSDC</span>
+                      )}
                     </div>
                     <ChevronRightIcon className="text-slate-600 group-hover:text-blue-400 transform group-hover:translate-x-1 transition-all" fontSize="small" />
                   </div>
                 </div>
               ))}
 
-              {projectsWithoutLocation.length === 0 && (
+              {filteredProjects.filter(p => !p.buildings?.some(b => b.latitude && b.longitude)).length === 0 && (
                 <div className="text-center py-12">
                   <Typography variant="caption" className="text-slate-500 italic">
                     All projects have map locations
@@ -483,6 +552,7 @@ export default function SelectProjectPage() {
                 Manual Create
               </Button>
             )}
+
           </Paper>
         </div>
       </div>
@@ -574,6 +644,42 @@ export default function SelectProjectPage() {
                   '& .MuiInputLabel-root.Mui-focused': { color: '#3b82f6' },
                 }}
               />
+
+              {/* Project Type Selector */}
+              <div>
+                <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', mb: 1 }}>
+                  Project Type *
+                </Typography>
+                <div className="grid grid-cols-2 gap-3">
+                  {([['construction', 'Construction Site', 'For on-site teams & members'], ['ssdc', 'SSDC Operations', 'For facilitators & supervisors']] as const).map(([val, label, desc]) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setNewProjectType(val)}
+                      className={`p-3 rounded-xl border-2 text-left transition-all ${
+                        newProjectType === val
+                          ? val === 'ssdc'
+                            ? 'border-amber-500 bg-amber-500/10'
+                            : 'border-blue-500 bg-blue-500/10'
+                          : 'border-white/10 bg-white/5 hover:border-white/20'
+                      }`}
+                    >
+                      <Typography variant="caption" className={`font-black block uppercase tracking-wider ${
+                        newProjectType === val ? (val === 'ssdc' ? 'text-amber-300' : 'text-blue-300') : 'text-slate-300'
+                      }`}>{label}</Typography>
+                      <Typography variant="caption" className="text-slate-500 text-[10px]">{desc}</Typography>
+                      {newProjectType === val && (
+                        <span className={`mt-1 inline-block w-2 h-2 rounded-full ${
+                          val === 'ssdc' ? 'bg-amber-400' : 'bg-blue-400'
+                        }`} />
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <Typography variant="caption" sx={{ color: '#ef4444', display: 'block', mt: 1, fontSize: '0.7rem' }}>
+                  ⚠ Project type cannot be changed after creation.
+                </Typography>
+              </div>
 
               <div className="h-[1px] bg-slate-700/50 my-2"></div>
 

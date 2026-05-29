@@ -238,7 +238,7 @@ export const GridEditor = ({ data, onChange, readOnly }: { data: any, onChange: 
                         body * { visibility: hidden !important; }
                         #print-daily-checklist-grid-container, #print-daily-checklist-grid-container * { visibility: visible !important; }
                         #print-daily-checklist-grid-container { 
-                            position: fixed !important; left: 0 !important; top: 0 !important; width: 100vw !important; height: auto !important; max-width: 100vw !important;
+                            position: absolute !important; left: 0 !important; top: 0 !important; width: 100vw !important; height: auto !important; max-width: 100vw !important;
                             display: block !important; margin: 0 !important; padding: 5mm !important; box-sizing: border-box !important;
                             background: white !important; z-index: 9999999 !important;
                         }

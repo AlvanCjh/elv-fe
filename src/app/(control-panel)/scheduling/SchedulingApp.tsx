@@ -35,8 +35,8 @@ import {
     Close as CloseIcon,
     CheckCircle as DoneIcon
 } from '@mui/icons-material';
-import TaskOverview from './components/TaskOverview';
 import AttendanceDialog from './components/AttendanceDialog';
+import TaskOverview from './components/TaskOverview';
 
 
 const SchedulingApp: React.FC = () => {
@@ -198,7 +198,7 @@ const SchedulingApp: React.FC = () => {
                     >
                         Add Report
                     </Button>
-                ) : (
+                ) : activeTab === 'attendance' ? (
                     <Button 
                         variant="contained" 
                         startIcon={<PlusIcon sx={{ fontSize: 18 }} />}
@@ -211,7 +211,7 @@ const SchedulingApp: React.FC = () => {
                     >
                         Add Personnel Shift
                     </Button>
-                )}
+                ) : null}
             </Box>
 
             {activeTab === 'scheduling' ? (

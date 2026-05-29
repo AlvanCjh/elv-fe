@@ -23,6 +23,10 @@ export interface ServiceReport {
     service_summary: string[]; // List of steps
     summary_date?: string;
     summary_time?: string;
+    linked_incident_report_id?: number;
+    linked_inspection_report_id?: number;
+    incidentReport?: any;
+    inspectionReport?: any;
     photos: ReportPhoto[];
     created_at: string;
     updated_at: string;
@@ -47,6 +51,8 @@ export const useAddServiceReport = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['service-reports'] });
+            queryClient.invalidateQueries({ queryKey: ['incident-reports'] });
+            queryClient.invalidateQueries({ queryKey: ['inspection-reports'] });
         }
     });
 };
@@ -60,6 +66,8 @@ export const useUpdateServiceReport = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['service-reports'] });
+            queryClient.invalidateQueries({ queryKey: ['incident-reports'] });
+            queryClient.invalidateQueries({ queryKey: ['inspection-reports'] });
         }
     });
 };

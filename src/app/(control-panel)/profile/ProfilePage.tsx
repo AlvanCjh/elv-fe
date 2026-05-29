@@ -55,7 +55,7 @@ function centerAspectCrop(mediaWidth: number, mediaHeight: number) {
 }
 
 function ProfilePage() {
-	const { data: user, updateUser } = useUser();
+	const { data: user, updateUser, setUser } = useUser();
 	const [uploading, setUploading] = useState(false);
 	const fileRef = useRef<HTMLInputElement>(null);
     const imgRef = useRef<HTMLImageElement>(null);
@@ -81,7 +81,7 @@ function ProfilePage() {
 	const onSubmit = async (data: FormValues) => {
 		try {
 			const { user: updated } = await authUpdateProfile({ name: data.name, password: data.password || undefined });
-			await updateUser(updated);
+			setUser(updated);
 			enqueueSnackbar('Profile updated', { variant: 'success' });
 			reset({ ...data, password: '', confirmPassword: '' });
 		} catch {

@@ -8,19 +8,37 @@ import { NavigationContext } from '@/components/theme-layouts/components/navigat
 import { useProject } from '@/context/ProjectContext';
 
 export function NavigationContextProvider({ children }: { children: ReactNode }) {
-	const { viewMode } = useProject();
+	const { viewMode, activeSystem } = useProject();
 
 	const filteredNavigationConfig = useMemo(() => {
-		return navigationConfig.filter(item => {
-			if (viewMode === 'ssdc') {
-				// Only show SSDC Ops and Management
-				return ['ssdc-operations-group', 'management-group'].includes(item.id);
-			} else {
-				// Only show Construction/Building related and Management
-				return ['inventory-group', 'building-group', 'scheduling-group', 'management-group'].includes(item.id);
-			}
-		});
-	}, [viewMode]);
+		// ICT System: show switch-workspace + ICT group + User Management (supervisor only)
+		if (activeSystem === 'ict') {
+			return navigationConfig.filter(item =>
+				['switch-workspace', 'ict-group', 'ict-user-management-group'].includes(item.id)
+			);
+		}
+
+		// Business System: show switch-workspace + Business group
+		if (activeSystem === 'business') {
+			return navigationConfig.filter(item =>
+				['switch-workspace', 'businesses-group', 'business-user-management-group'].includes(item.id)
+			);
+		}
+
+		// Inventory System: show switch-workspace + Inventory standalone group
+		if (activeSystem === 'inventory') {
+			return navigationConfig.filter(item =>
+				['switch-workspace', 'inventory-standalone-group'].includes(item.id)
+			);
+		}
+
+		// ELV System (default): filter by viewMode (construction vs ssdc)
+		const elvItems = viewMode === 'ssdc'
+			? ['switch-workspace', 'ssdc-operations-group', 'management-group']
+			: ['switch-workspace', 'inventory-group', 'building-group', 'scheduling-group', 'management-group'];
+
+		return navigationConfig.filter(item => elvItems.includes(item.id));
+	}, [viewMode, activeSystem]);
 
 	const [navigationItems, setNavigationItems] = useState<FuseFlatNavItemType[]>(
 		FuseNavigationHelper.flattenNavigation(filteredNavigationConfig)

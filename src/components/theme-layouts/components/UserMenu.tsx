@@ -172,15 +172,30 @@ function UserMenu(props: UserMenuProps) {
 						</MenuItem>
 						<MenuItem
 							component={Link}
-							to="/select-project"
+							to="/select-workspace"
 							role="button"
 							onClick={userMenuClose}
 						>
 							<ListItemIcon>
-								<FuseSvgIcon>lucide:arrow-left-right</FuseSvgIcon>
+								<FuseSvgIcon>heroicons-outline:squares-plus</FuseSvgIcon>
 							</ListItemIcon>
-							<ListItemText primary="Switch Project" />
+							<ListItemText primary="Switch System" />
 						</MenuItem>
+						{(Array.isArray(user.role) 
+                            ? user.role.some(r => ['supervisor', 'elv', 'member', 'facilitator'].includes(r?.toLowerCase()))
+                            : ['supervisor', 'elv', 'member', 'facilitator'].includes(user?.role?.toLowerCase())) && (
+							<MenuItem
+								component={Link}
+								to="/select-project"
+								role="button"
+								onClick={userMenuClose}
+							>
+								<ListItemIcon>
+									<FuseSvgIcon>lucide:arrow-left-right</FuseSvgIcon>
+								</ListItemIcon>
+								<ListItemText primary="Switch Project" />
+							</MenuItem>
+						)}
 						<MenuItem
 							onClick={() => {
 								userMenuClose();

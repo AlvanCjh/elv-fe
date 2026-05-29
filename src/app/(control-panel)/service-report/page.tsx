@@ -1,24 +1,28 @@
 'use client';
-import { FC, useState, useRef } from 'react';
-import { 
-    Typography, Paper, Box, Button, IconButton, Dialog, 
-    DialogTitle, DialogContent, DialogActions, TextField, 
-    CircularProgress, Chip, Grid, MenuItem, Select, FormControl, 
+import { FC, useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
+import {
+    Typography, Paper, Box, Button, IconButton, Dialog,
+    DialogTitle, DialogContent, DialogActions, TextField,
+    CircularProgress, Chip, Grid, MenuItem, Select, FormControl,
     InputLabel, useTheme, Checkbox, FormControlLabel,
-    Card, CardMedia, Divider, Table, TableBody, TableCell, 
+    Card, CardMedia, Divider, Table, TableBody, TableCell,
     TableContainer, TableRow, TableHead
 } from '@mui/material';
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import { motion, AnimatePresence } from 'motion/react';
 import { useProject } from '@/context/ProjectContext';
-import { 
-    useServiceReports, useAddServiceReport, 
-    useUpdateServiceReport, useDeleteServiceReport, 
-    useDeleteServicePhoto, ServiceReport 
+import {
+    useServiceReports, useAddServiceReport,
+    useUpdateServiceReport, useDeleteServiceReport,
+    useDeleteServicePhoto, ServiceReport
 } from './serviceApi';
 import { enqueueSnackbar } from 'notistack';
 import { format } from 'date-fns';
 import { API_BASE_URL } from '@/utils/api';
+
+import { useIncidentReports } from '../incidence-report/incidentApi';
+import { useInspectionReports } from '../inspection-report/inspectionApi';
 
 const SERVICE_TYPES = [
     'New installation', 'Equipment breakdown', 'Fire Panel',
@@ -30,9 +34,11 @@ const SERVICE_TYPES = [
 
 const ServiceReportPage: FC = () => {
     const theme = useTheme();
-    const { activeProjectId } = useProject();
+    const { activeProject: selectedProject } = useProject();
     const [view, setView] = useState<'list' | 'form'>('list');
     const [editingReport, setEditingReport] = useState<ServiceReport | null>(null);
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => { setMounted(true); }, []);
     const [lightboxImage, setLightboxImage] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -40,7 +46,7 @@ const ServiceReportPage: FC = () => {
 
     // Form state
     const [formData, setFormData] = useState({
-        company_name: '',
+        company_name: 'SABAH NET SDN BHD',
         address: '',
         contact_person: '',
         telephone_no: '',
@@ -52,22 +58,53 @@ const ServiceReportPage: FC = () => {
         service_summary: [''] as string[],
         summary_date: format(new Date(), 'yyyy-MM-dd'),
         summary_time: format(new Date(), 'HH:mm'),
+        linked_incident_report_id: '' as number | '',
+        linked_inspection_report_id: '' as number | '',
+        incidentReport: null as any,
+        inspectionReport: null as any,
     });
 
     const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
     const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
 
-    const { data: reports = [], isLoading } = useServiceReports(activeProjectId);
+    const { data: reports = [], isLoading } = useServiceReports(selectedProject?.id);
+    const { data: incidentReports = [] } = useIncidentReports(selectedProject?.id);
+    const { data: inspectionReports = [] } = useInspectionReports(selectedProject?.id);
+
     const addMutation = useAddServiceReport();
     const updateMutation = useUpdateServiceReport();
     const deleteMutation = useDeleteServiceReport();
     const deletePhotoMutation = useDeleteServicePhoto();
 
+    // ── Filter state ──────────────────────────────────────────────
+    const [srSearchText, setSrSearchText] = useState('');
+    const [srDateFrom, setSrDateFrom] = useState('');
+    const [srDateTo, setSrDateTo] = useState('');
+
+    const filteredReports = useMemo(() => {
+        return reports.filter(r => {
+            const q = srSearchText.toLowerCase();
+            const matchText = !q ||
+                (r.service_report_no || '').toLowerCase().includes(q) ||
+                (r.taken_by || '').toLowerCase().includes(q) ||
+                (r.company_name || '').toLowerCase().includes(q) ||
+                (r.contact_person || '').toLowerCase().includes(q) ||
+                (r.description || '').toLowerCase().includes(q) ||
+                (r.address || '').toLowerCase().includes(q) ||
+                (r.service_types || []).some(t => t.toLowerCase().includes(q));
+            const rDate = new Date(r.date_time || r.created_at);
+            const matchFrom = !srDateFrom || rDate >= new Date(srDateFrom);
+            const matchTo = !srDateTo || rDate <= new Date(srDateTo + 'T23:59:59');
+            return matchText && matchFrom && matchTo;
+        });
+    }, [reports, srSearchText, srDateFrom, srDateTo]);
+    // ───────────────────────────────────────────────────────────
+
     const handleOpenForm = (report?: ServiceReport) => {
         if (report) {
             setEditingReport(report);
             setFormData({
-                company_name: report.company_name || '',
+                company_name: report.company_name || 'SABAH NET SDN BHD',
                 address: report.address || '',
                 contact_person: report.contact_person || '',
                 telephone_no: report.telephone_no || '',
@@ -79,11 +116,15 @@ const ServiceReportPage: FC = () => {
                 service_summary: report.service_summary || [''],
                 summary_date: report.summary_date ? report.summary_date.split('T')[0] : '',
                 summary_time: report.summary_time || '',
+                linked_incident_report_id: report.linked_incident_report_id || '',
+                linked_inspection_report_id: report.linked_inspection_report_id || '',
+                incidentReport: report.incidentReport || null,
+                inspectionReport: report.inspectionReport || null,
             });
         } else {
             setEditingReport(null);
             setFormData({
-                company_name: '',
+                company_name: 'SABAH NET SDN BHD',
                 address: '',
                 contact_person: '',
                 telephone_no: '',
@@ -95,6 +136,10 @@ const ServiceReportPage: FC = () => {
                 service_summary: [''],
                 summary_date: format(new Date(), 'yyyy-MM-dd'),
                 summary_time: format(new Date(), 'HH:mm'),
+                linked_incident_report_id: '',
+                linked_inspection_report_id: '',
+                incidentReport: null,
+                inspectionReport: null,
             });
         }
         setSelectedPhotos([]);
@@ -106,7 +151,7 @@ const ServiceReportPage: FC = () => {
     const renderPrintLayout = () => {
         const data = editingReport || { ...formData, service_report_no: 'DRAFT', photos: [] };
         return (
-            <div className="bg-white text-black font-sans mx-auto print:max-w-none print:w-full min-h-0 flex flex-col pt-8 print:pt-0 transform print:scale-[0.98] origin-top">
+            <div className="bg-white text-black font-sans mx-auto print:max-w-none print:w-full min-h-0 flex flex-col pt-8 print:!pt-0">
                 {/* Formal Header */}
                 <div className="flex justify-between items-end border-b-2 border-slate-800 pb-4 mb-8">
                     <div>
@@ -147,6 +192,25 @@ const ServiceReportPage: FC = () => {
                             <td className="border border-slate-800 p-2.5 bg-slate-50 font-bold w-1/4 uppercase text-[10px] tracking-wider text-slate-600">Taken By</td>
                             <td className="border border-slate-800 p-2.5 font-semibold uppercase text-slate-900" colSpan={3}>{data.taken_by || '-'}</td>
                         </tr>
+                        {(data.linked_incident_report_id || data.linked_inspection_report_id) && (
+                            <tr>
+                                <td className="border border-slate-800 p-2.5 bg-slate-50 font-bold uppercase text-[10px] tracking-wider text-slate-600">Linked Reports</td>
+                                <td className="border border-slate-800 p-2.5 font-semibold text-slate-900" colSpan={3}>
+                                    {data.linked_incident_report_id && (
+                                        <div className="flex gap-2 items-center">
+                                            <span className="font-bold text-[10px] uppercase text-indigo-600 bg-indigo-50 px-2 rounded-md">Incident</span>
+                                            {data.incidentReport?.ir_no || `ID: ${data.linked_incident_report_id}`}
+                                        </div>
+                                    )}
+                                    {data.linked_inspection_report_id && (
+                                        <div className="flex gap-2 items-center mt-1">
+                                            <span className="font-bold text-[10px] uppercase text-rose-600 bg-rose-50 px-2 rounded-md">Inspection</span>
+                                            {data.inspectionReport?.rfwi_ref_no || data.inspectionReport?.title || `ID: ${data.linked_inspection_report_id}`}
+                                        </div>
+                                    )}
+                                </td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
 
@@ -165,7 +229,7 @@ const ServiceReportPage: FC = () => {
                         <tbody>
                             {data.service_summary.map((step, i) => (
                                 <tr key={i}>
-                                    <td className="border-b border-r border-slate-800 p-2.5 font-bold w-12 text-center text-[10px] text-slate-500">{i+1}</td>
+                                    <td className="border-b border-r border-slate-800 p-2.5 font-bold w-12 text-center text-[10px] text-slate-500">{i + 1}</td>
                                     <td className="border-b border-slate-800 p-2.5 font-medium leading-relaxed text-slate-800">{step}</td>
                                 </tr>
                             ))}
@@ -173,42 +237,63 @@ const ServiceReportPage: FC = () => {
                     </table>
                 </div>
 
-                {/* Appendix: Photos */}
-                {data.photos && data.photos.length > 0 && (
-                    <div className="mt-8 page-break-before">
-                        <div className="border border-slate-800 p-2 bg-slate-50 font-bold uppercase text-[10px] tracking-widest text-slate-600 mb-6">Appendix: Photo Evidence</div>
-                        <div className="grid grid-cols-2 gap-6">
-                            {data.photos.map((photo, i) => (
-                                <div key={i} className="border border-slate-300 p-1 flex flex-col bg-slate-50 rounded-sm">
-                                    <div className="h-[300px] w-full bg-white border border-slate-200">
-                                        <img src={photo.id ? `${API_BASE_URL}/storage/${photo.photo_path}` : photoPreviews[i]} className="w-full h-full object-contain" alt="Appendix" />
+                {/* Photo Evidence Section */}
+                {(() => {
+                    const serverPhotos = (data.photos || []).map((photo, i) => ({
+                        src: `${API_BASE_URL}/storage/${photo.photo_path}`,
+                        caption: photo.caption || '',
+                        key: `server-${photo.id || i}`,
+                    }));
+                    const localPhotos = photoPreviews.map((preview, i) => ({
+                        src: preview,
+                        caption: photoRemarks[i] || '',
+                        key: `local-${i}`,
+                    }));
+                    const allPhotos = [...serverPhotos, ...localPhotos];
+                    if (allPhotos.length === 0) return null;
+                    return (
+                        <div className="mt-12 page-break-before-always">
+                            <div className="border-l-4 border-slate-800 pl-4 py-2 bg-slate-50 font-black uppercase text-[12px] tracking-[0.2em] text-slate-800 mb-8 border-y border-r">
+                                Photo Evidence Documentation
+                            </div>
+                            <div className="grid grid-cols-2 gap-8">
+                                {allPhotos.map((photo, i) => (
+                                    <div key={photo.key} className="photo-block border border-slate-800 p-2 flex flex-col bg-white">
+                                        <div className="h-[350px] w-full bg-white flex items-center justify-center overflow-hidden border border-slate-100">
+                                            <img
+                                                src={photo.src}
+                                                className="max-w-full max-h-full object-contain block"
+                                                alt={`Photo ${i + 1}`}
+                                            />
+                                        </div>
+                                        <div className="mt-4 text-[10px] font-black uppercase text-center text-slate-800 tracking-widest border-t border-slate-100 pt-2 bg-slate-50/50 flex-1 flex items-center justify-center px-4">
+                                            {photo.caption || `Figure ${i + 1}`}
+                                        </div>
                                     </div>
-                                    <div className="mt-3 text-[10px] font-bold uppercase text-center text-slate-600 tracking-wider">
-                                        " {photo.id ? (photo.caption || `Figure ${i + 1}`) : (photoRemarks[i] || `New Image ${i + 1}`)} "
-                                    </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    );
+                })()}
 
-                <div className="flex-1 min-h-[40px]"></div>
+
+                <div className="flex-1 min-h-[60px]"></div>
 
                 {/* Verified By */}
-                <div className="mt-16 pt-10 border-t-2 border-slate-800 grid grid-cols-2 gap-16">
-                    <div>
-                        <Typography className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-8">Representative Authorization:</Typography>
-                        <div className="border-b border-slate-800 pb-2 mb-2">
-                            <Typography className="text-sm font-black uppercase text-slate-800">{data.taken_by || '___________________________'}</Typography>
+                <div className="mt-auto pt-10 border-t-2 border-slate-800 grid grid-cols-2 gap-20">
+                    <div className="photo-block flex flex-col h-full">
+                        <Typography className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-10">I. Technical Authorization:</Typography>
+                        <div className="mt-auto border-b-2 border-slate-800 pb-3 mb-3">
+                            <Typography className="text-[15px] font-black uppercase text-slate-900 tracking-tight leading-none min-h-[15px]">{data.taken_by || '___________________________'}</Typography>
                         </div>
-                        <Typography className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Assigned Engineer</Typography>
+                        <Typography className="text-[11px] font-black uppercase text-slate-500 tracking-[0.1em]">Lead Service Engineer</Typography>
                     </div>
-                    <div className="text-right">
-                        <Typography className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-8">Client / Receiver Acknowledgment:</Typography>
-                        <div className="border-b border-slate-800 pb-2 mb-2">
-                            <Typography className="text-sm font-black uppercase italic text-slate-800">___________________________</Typography>
+                    <div className="text-right photo-block flex flex-col h-full">
+                        <Typography className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-10">II. Client Acknowledgement:</Typography>
+                        <div className="mt-auto border-b-2 border-slate-800 pb-3 mb-3">
+                            <Typography className="text-[15px] font-black uppercase italic text-slate-300 tracking-tight leading-none min-h-[15px]">Name & Signature</Typography>
                         </div>
-                        <Typography className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Date: _________________</Typography>
+                        <Typography className="text-[11px] font-black uppercase text-slate-500 tracking-[0.1em]">Date: {format(new Date(), 'dd / MM / yyyy')}</Typography>
                     </div>
                 </div>
             </div>
@@ -241,29 +326,18 @@ const ServiceReportPage: FC = () => {
     };
 
     const handleSave = async () => {
-        if (!activeProjectId) return;
-
-        // Frontend Validation
-        if (formData.service_types.length === 0) {
-            enqueueSnackbar('Please select at least one Service Category', { variant: 'warning' });
-            return;
-        }
-
-        if (formData.service_summary.filter(s => s.trim()).length === 0) {
-            enqueueSnackbar('Please add at least one line of Service Summary', { variant: 'warning' });
-            return;
-        }
+        if (!selectedProject || !formData.date_time) return;
 
         const data = new FormData();
         Object.entries(formData).forEach(([key, value]) => {
+            if (value === '' || value === null) return;
             if (Array.isArray(value)) {
                 value.forEach(v => data.append(`${key}[]`, v));
             } else {
-                data.append(key, value || '');
+                data.append(key, typeof value === 'number' ? String(value) : String(value));
             }
         });
-        
-        data.append('project_id', activeProjectId.toString());
+        data.append('project_id', selectedProject.id.toString());
         selectedPhotos.forEach((p, index) => {
             data.append('photos[]', p);
             data.append(`photo_remarks[${index}]`, photoRemarks[index] || '');
@@ -272,37 +346,17 @@ const ServiceReportPage: FC = () => {
         try {
             if (editingReport) {
                 await updateMutation.mutateAsync({ id: editingReport.id, formData: data });
-                enqueueSnackbar('Service Report Updated Successfully', { variant: 'success' });
+                enqueueSnackbar('Service Report Updated', { variant: 'success' });
             } else {
                 await addMutation.mutateAsync(data);
-                enqueueSnackbar('Service Report Submitted Successfully', { variant: 'success' });
+                enqueueSnackbar('Service Report Submitted', { variant: 'success' });
             }
+            setSelectedPhotos([]);
+            setPhotoPreviews([]);
+            setPhotoRemarks([]);
             setView('list');
-        } catch (error: any) {
-            console.error('[ServiceReport] Save error:', error);
-            let msg = 'Error saving report';
-            
-            if (error?.response?.status === 422) {
-                try {
-                    const errorData = await error.response.json();
-                    if (errorData.errors) {
-                        const firstError = Object.values(errorData.errors)[0] as string[];
-                        msg = `Validation Error: ${firstError[0]}`;
-                    } else {
-                        msg = errorData.message || 'Validation failed. Please check all required fields.';
-                    }
-                } catch (e) {
-                    msg = 'Incomplete form. Please check Service Types and Summary.';
-                }
-            } else if (error?.message) {
-                msg = error.message;
-            }
-            
-            enqueueSnackbar(msg, { 
-                variant: 'error', 
-                autoHideDuration: 6000,
-                style: { whiteSpace: 'pre-wrap' }
-            });
+        } catch (error) {
+            enqueueSnackbar('Error saving report', { variant: 'error' });
         }
     };
 
@@ -334,7 +388,7 @@ const ServiceReportPage: FC = () => {
 
     const handleImportPdf = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file || !activeProjectId) return;
+        if (!file || !selectedProject) return;
 
         try {
             enqueueSnackbar('Parsing PDF...', { variant: 'info' });
@@ -353,9 +407,9 @@ const ServiceReportPage: FC = () => {
             const clientCompany = extractBetween('Client Company', 'Address', 'Unknown Client');
             const address = extractBetween('Address', 'Date', 'Unknown Address');
             const generalDescription = extractBetween('General Job Description', 'Chronological Service Steps', 'Imported Description');
-            
+
             let blocks = extractBetween('Chronological Service Steps & Resolution', 'Representative Authorization', 'Checked System.');
-            const steps = blocks.split('\n').filter(s=>s.trim() && s.length > 2).map(s => s.replace(/^\d+\s/, '').trim());
+            const steps = blocks.split('\n').filter(s => s.trim() && s.length > 2).map(s => s.replace(/^\d+\s/, '').trim());
             if (steps.length === 0) steps.push('Service completed.');
 
             const parsedData = {
@@ -370,7 +424,7 @@ const ServiceReportPage: FC = () => {
 
             setEditingReport(null);
             setFormData({
-                company_name: parsedData.company_name,
+                company_name: 'SABAH NET SDN BHD',
                 address: parsedData.address,
                 contact_person: '',
                 telephone_no: '',
@@ -382,12 +436,16 @@ const ServiceReportPage: FC = () => {
                 service_summary: parsedData.service_summary as string[],
                 summary_date: format(new Date(), 'yyyy-MM-dd'),
                 summary_time: format(new Date(), 'HH:mm'),
+                linked_incident_report_id: '',
+                linked_inspection_report_id: '',
+                incidentReport: null,
+                inspectionReport: null,
             });
             setSelectedPhotos([]);
             setPhotoPreviews([]);
             setPhotoRemarks([]);
             setView('form');
-            
+
             enqueueSnackbar('PDF extracted! Please review the form before saving.', { variant: 'success' });
             if (pdfImportInputRef.current) pdfImportInputRef.current.value = '';
         } catch (err) {
@@ -400,8 +458,17 @@ const ServiceReportPage: FC = () => {
     if (isLoading) return <Box className="flex justify-center p-20"><CircularProgress color="secondary" /></Box>;
 
     return (
-        <div className="w-full min-h-screen bg-slate-100 dark:bg-slate-950 p-6">
-            <div className="max-w-7xl mx-auto">
+        <div className="w-full min-h-screen bg-slate-100 dark:bg-slate-950 p-6 print:p-0 print:min-h-0 transition-all">
+            <style dangerouslySetInnerHTML={{ __html: `
+                @media print {
+                    html, body { background: white !important; }
+                    /* display:none removes layout space (no blank pages) */
+                    body > *:not(#print-service-report-container) { display: none !important; }
+                    @page { margin: 1.5cm; size: A4 portrait; }
+                }
+            `}} />
+
+            <div id="normal-app-container" className="max-w-7xl mx-auto print-hidden-wrapper">
                 <AnimatePresence mode="wait">
                     {view === 'list' ? (
                         <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -416,12 +483,12 @@ const ServiceReportPage: FC = () => {
                                     <p className="text-slate-500 font-black ml-16 mt-1 tracking-widest text-[10px] uppercase underline decoration-indigo-500 decoration-2 underline-offset-4">Technical Service Record Archive</p>
                                 </div>
                                 <div className="flex gap-4">
-                                    <input 
-                                        type="file" 
-                                        accept="application/pdf" 
-                                        style={{ display: 'none' }} 
-                                        ref={pdfImportInputRef} 
-                                        onChange={handleImportPdf} 
+                                    <input
+                                        type="file"
+                                        accept="application/pdf"
+                                        style={{ display: 'none' }}
+                                        ref={pdfImportInputRef}
+                                        onChange={handleImportPdf}
                                     />
                                     <Button
                                         variant="outlined"
@@ -442,8 +509,67 @@ const ServiceReportPage: FC = () => {
                                 </div>
                             </div>
 
+                            {/* ── Filter / Search Bar ── */}
+                            <div className="mb-8 flex flex-col sm:flex-row gap-3 p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                                {/* Search */}
+                                <div className="flex-1 flex items-center gap-2 bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2 border border-slate-200 dark:border-slate-700">
+                                    <FuseSvgIcon size={16} className="text-slate-400 shrink-0">heroicons-outline:magnifying-glass</FuseSvgIcon>
+                                    <input
+                                        type="text"
+                                        placeholder="Search by SR No, technician, location, customer…"
+                                        value={srSearchText}
+                                        onChange={e => setSrSearchText(e.target.value)}
+                                        className="flex-1 bg-transparent text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none placeholder:text-slate-400 placeholder:font-normal"
+                                    />
+                                    {srSearchText && (
+                                        <button onClick={() => setSrSearchText('')} className="text-slate-300 hover:text-indigo-400 transition-colors">
+                                            <FuseSvgIcon size={14}>heroicons-outline:x-mark</FuseSvgIcon>
+                                        </button>
+                                    )}
+                                </div>
+                                {/* Date From */}
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider whitespace-nowrap">From</span>
+                                    <input
+                                        type="date"
+                                        value={srDateFrom}
+                                        onChange={e => setSrDateFrom(e.target.value)}
+                                        className="text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-indigo-400 transition-colors"
+                                    />
+                                </div>
+                                {/* Date To */}
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider whitespace-nowrap">To</span>
+                                    <input
+                                        type="date"
+                                        value={srDateTo}
+                                        onChange={e => setSrDateTo(e.target.value)}
+                                        className="text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-indigo-400 transition-colors"
+                                    />
+                                </div>
+                                {/* Clear */}
+                                {(srDateFrom || srDateTo || srSearchText) && (
+                                    <button
+                                        onClick={() => { setSrSearchText(''); setSrDateFrom(''); setSrDateTo(''); }}
+                                        className="flex items-center gap-1.5 text-[11px] font-black uppercase text-indigo-500 hover:text-indigo-700 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 rounded-xl px-3 py-2 transition-all whitespace-nowrap"
+                                    >
+                                        <FuseSvgIcon size={12}>heroicons-outline:x-circle</FuseSvgIcon>
+                                        Clear
+                                    </button>
+                                )}
+                                {/* Results count */}
+                                <div className="flex items-center px-2 text-[11px] font-black text-slate-400 whitespace-nowrap">
+                                    {filteredReports.length} / {reports.length}
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {reports.map(report => (
+                                {filteredReports.length === 0 ? (
+                                    <div className="col-span-3 py-20 text-center">
+                                        <FuseSvgIcon size={40} className="text-slate-200 mx-auto mb-3">heroicons-outline:magnifying-glass</FuseSvgIcon>
+                                        <p className="text-slate-400 font-black uppercase tracking-widest text-sm">No reports match your filters</p>
+                                    </div>
+                                ) : filteredReports.map(report => (
                                     <Card key={report.id} className="rounded-[2.5rem] bg-white border border-slate-200 overflow-hidden group hover:shadow-2xl transition-all">
                                         <div className="p-8">
                                             <div className="flex justify-between items-start mb-6">
@@ -451,13 +577,63 @@ const ServiceReportPage: FC = () => {
                                                     {report.service_report_no}
                                                 </div>
                                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <IconButton size="small" onClick={(e) => { e.stopPropagation(); setEditingReport(report); setTimeout(() => window.print(), 100); }} className="text-slate-400 hover:bg-slate-100"><FuseSvgIcon size={18}>heroicons-outline:printer</FuseSvgIcon></IconButton>
+                                                    <IconButton 
+                                                        size="small" 
+                                                        onClick={(e) => { 
+                                                            e.stopPropagation(); 
+                                                            setSelectedPhotos([]);
+                                                            setPhotoPreviews([]);
+                                                            setPhotoRemarks([]);
+                                                            setEditingReport(report);
+                                                            // Wait for React to commit the new state, then wait for images
+                                                            requestAnimationFrame(() => requestAnimationFrame(async () => {
+                                                                const printContainer = document.getElementById('print-service-report-container');
+                                                                if (printContainer) {
+                                                                    const images = Array.from(printContainer.getElementsByTagName('img'));
+                                                                    await Promise.all(images.map(img =>
+                                                                        img.complete ? Promise.resolve() : new Promise(resolve => {
+                                                                            img.onload = resolve;
+                                                                            img.onerror = resolve;
+                                                                        })
+                                                                    ));
+                                                                    setTimeout(() => window.print(), 150);
+                                                                } else {
+                                                                    window.print();
+                                                                }
+                                                            }));
+                                                        }} 
+                                                        className="text-slate-400 hover:bg-slate-100"
+                                                    >
+                                                        <FuseSvgIcon size={18}>heroicons-outline:printer</FuseSvgIcon>
+                                                    </IconButton>
                                                     <IconButton size="small" onClick={() => handleOpenForm(report)} className="text-indigo-500 bg-indigo-50"><FuseSvgIcon size={18}>heroicons-outline:pencil-square</FuseSvgIcon></IconButton>
                                                     <IconButton size="small" onClick={() => handleDelete(report.id)} className="text-rose-500 bg-rose-50"><FuseSvgIcon size={18}>heroicons-outline:trash</FuseSvgIcon></IconButton>
                                                 </div>
                                             </div>
                                             <Typography className="text-2xl font-black mb-1 italic truncate">{report.company_name || 'Individual Client'}</Typography>
                                             <Typography className="text-[10px] uppercase font-black text-slate-400 mb-6 tracking-widest line-clamp-1">{report.address}</Typography>
+                                            
+                                            {(report.linked_incident_report_id || report.linked_inspection_report_id) && (
+                                                <div className="flex flex-col gap-2 mb-4">
+                                                    {report.linked_incident_report_id && (
+                                                        <div className="flex items-center gap-2 bg-rose-50 dark:bg-rose-900/20 w-fit px-3 py-1.5 rounded-lg border border-rose-100 dark:border-rose-800">
+                                                            <FuseSvgIcon size={14} className="text-rose-500">heroicons-outline:shield-exclamation</FuseSvgIcon>
+                                                            <Typography className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest">
+                                                                {report.incidentReport?.ir_no || `IR-ID: ${report.linked_incident_report_id}`}
+                                                            </Typography>
+                                                        </div>
+                                                    )}
+                                                    {report.linked_inspection_report_id && (
+                                                        <div className="flex items-center gap-2 bg-sky-50 dark:bg-sky-900/20 w-fit px-3 py-1.5 rounded-lg border border-sky-100 dark:border-sky-800">
+                                                            <FuseSvgIcon size={14} className="text-sky-500">heroicons-outline:clipboard-document-check</FuseSvgIcon>
+                                                            <Typography className="text-[10px] font-black text-sky-600 dark:text-sky-400 uppercase tracking-widest">
+                                                                {report.inspectionReport?.rfwi_ref_no || report.inspectionReport?.title || `INSP-ID: ${report.linked_inspection_report_id}`}
+                                                            </Typography>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
                                             <Divider className="mb-6 opacity-30" />
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
@@ -487,7 +663,22 @@ const ServiceReportPage: FC = () => {
                                         <Button
                                             variant="outlined"
                                             startIcon={<FuseSvgIcon size={20}>heroicons-outline:printer</FuseSvgIcon>}
-                                            onClick={() => window.print()}
+                                            onClick={async () => {
+                                                window.scrollTo(0, 0);
+                                                const printContainer = document.getElementById('print-service-report-container');
+                                                if (printContainer) {
+                                                    const images = Array.from(printContainer.getElementsByTagName('img'));
+                                                    await Promise.all(images.map(img =>
+                                                        img.complete ? Promise.resolve() : new Promise(resolve => {
+                                                            img.onload = resolve;
+                                                            img.onerror = resolve;
+                                                        })
+                                                    ));
+                                                    setTimeout(() => window.print(), 500);
+                                                } else {
+                                                    window.print();
+                                                }
+                                            }}
                                             className="rounded-xl border-slate-700 text-white hover:bg-slate-800 font-black px-6"
                                         >
                                             Print PDF
@@ -513,12 +704,44 @@ const ServiceReportPage: FC = () => {
                                             <Typography className="text-2xl font-black uppercase italic tracking-tight underline decoration-indigo-500 underline-offset-8">Client Identification</Typography>
                                         </div>
                                         <Grid container spacing={5}>
-                                            <Grid size={{ xs: 12, md: 6 }}><TextField label="Company Name" fullWidth value={formData.company_name} onChange={e=>setFormData({...formData, company_name: e.target.value})} slotProps={{ input: { sx: { borderRadius: '20px', fontWeight: 800 } } }} /></Grid>
-                                            <Grid size={{ xs: 12, md: 6 }}><TextField label="Service Location / Address" fullWidth value={formData.address} onChange={e=>setFormData({...formData, address: e.target.value})} slotProps={{ input: { sx: { borderRadius: '20px', fontWeight: 800 } } }} /></Grid>
-                                            <Grid size={{ xs: 12, md: 3 }}><TextField label="Contact Person" fullWidth value={formData.contact_person} onChange={e=>setFormData({...formData, contact_person: e.target.value})} slotProps={{ input: { sx: { borderRadius: '16px' } } }} /></Grid>
-                                            <Grid size={{ xs: 12, md: 3 }}><TextField label="Telephone No" fullWidth value={formData.telephone_no} onChange={e=>setFormData({...formData, telephone_no: e.target.value})} slotProps={{ input: { sx: { borderRadius: '16px' } } }} /></Grid>
-                                            <Grid size={{ xs: 12, md: 3 }}><TextField label="Taken By *" fullWidth value={formData.taken_by} onChange={e=>setFormData({...formData, taken_by: e.target.value})} slotProps={{ input: { sx: { borderRadius: '16px' } } }} /></Grid>
-                                            <Grid size={{ xs: 12, md: 3 }}><TextField label="Date & Time *" type="datetime-local" fullWidth value={formData.date_time} onChange={e=>setFormData({...formData, date_time: e.target.value})} slotProps={{ input: { sx: { borderRadius: '16px', fontWeight: 900 } } }} /></Grid>
+                                            <Grid size={{ xs: 12, md: 6 }}><TextField label="Company Name" disabled fullWidth value={formData.company_name} onChange={e => setFormData({ ...formData, company_name: e.target.value })} slotProps={{ input: { sx: { borderRadius: '20px', fontWeight: 800 } } }} /></Grid>
+                                            <Grid size={{ xs: 12, md: 6 }}><TextField label="Service Location / Address" fullWidth value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} slotProps={{ input: { sx: { borderRadius: '20px', fontWeight: 800 } } }} /></Grid>
+                                            <Grid size={{ xs: 12, md: 3 }}><TextField label="Contact Person" fullWidth value={formData.contact_person} onChange={e => setFormData({ ...formData, contact_person: e.target.value })} slotProps={{ input: { sx: { borderRadius: '16px' } } }} /></Grid>
+                                            <Grid size={{ xs: 12, md: 3 }}><TextField label="Telephone No" fullWidth value={formData.telephone_no} onChange={e => setFormData({ ...formData, telephone_no: e.target.value })} slotProps={{ input: { sx: { borderRadius: '16px' } } }} /></Grid>
+                                            <Grid size={{ xs: 12, md: 3 }}><TextField label="Taken By" fullWidth value={formData.taken_by} onChange={e => setFormData({ ...formData, taken_by: e.target.value })} slotProps={{ input: { sx: { borderRadius: '16px' } } }} /></Grid>
+                                            <Grid size={{ xs: 12, md: 3 }}><TextField label="Date & Time" type="datetime-local" fullWidth value={formData.date_time} onChange={e => setFormData({ ...formData, date_time: e.target.value })} slotProps={{ input: { sx: { borderRadius: '16px', fontWeight: 900 } } }} /></Grid>
+                                            <Grid size={{ xs: 12, md: 6 }}>
+                                                <FormControl fullWidth>
+                                                    <InputLabel>Link Incident Report</InputLabel>
+                                                    <Select
+                                                        value={formData.linked_incident_report_id || ''}
+                                                        onChange={e => setFormData({ ...formData, linked_incident_report_id: e.target.value as number | '' })}
+                                                        label="Link Incident Report"
+                                                        sx={{ borderRadius: '16px' }}
+                                                    >
+                                                        <MenuItem value=""><em>None</em></MenuItem>
+                                                        {incidentReports.map((ir) => (
+                                                            <MenuItem key={ir.id} value={ir.id}>{ir.ir_no} - {ir.incident_location}</MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                </FormControl>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, md: 6 }}>
+                                                <FormControl fullWidth>
+                                                    <InputLabel>Link Inspection Report</InputLabel>
+                                                    <Select
+                                                        value={formData.linked_inspection_report_id || ''}
+                                                        onChange={e => setFormData({ ...formData, linked_inspection_report_id: e.target.value as number | '' })}
+                                                        label="Link Inspection Report"
+                                                        sx={{ borderRadius: '16px' }}
+                                                    >
+                                                        <MenuItem value=""><em>None</em></MenuItem>
+                                                        {inspectionReports.map((insp) => (
+                                                            <MenuItem key={insp.id} value={insp.id}>{insp.rfwi_ref_no || insp.title} - {insp.location}</MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                </FormControl>
+                                            </Grid>
                                         </Grid>
                                     </div>
 
@@ -526,7 +749,7 @@ const ServiceReportPage: FC = () => {
                                     <div>
                                         <div className="flex items-center gap-4 mb-8">
                                             <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black">02</div>
-                                            <Typography className="text-2xl font-black uppercase italic tracking-tight underline decoration-indigo-500 underline-offset-8">Type of Services *</Typography>
+                                            <Typography className="text-2xl font-black uppercase italic tracking-tight">Type of Services</Typography>
                                         </div>
                                         <div className="bg-slate-50 p-8 rounded-[3rem] border border-slate-100 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                             {SERVICE_TYPES.map(type => (
@@ -534,7 +757,7 @@ const ServiceReportPage: FC = () => {
                                                     key={type}
                                                     control={<Checkbox checked={formData.service_types.includes(type)} onChange={e => {
                                                         const nt = e.target.checked ? [...formData.service_types, type] : formData.service_types.filter(v => v !== type);
-                                                        setFormData({...formData, service_types: nt});
+                                                        setFormData({ ...formData, service_types: nt });
                                                     }} color="secondary" />}
                                                     label={<Typography className="text-xs font-black uppercase text-slate-600">{type}</Typography>}
                                                 />
@@ -544,13 +767,13 @@ const ServiceReportPage: FC = () => {
 
                                     {/* Section 3: Job Description */}
                                     <div className="space-y-12">
-                                        <TextField label="General Job Description" multiline rows={4} fullWidth value={formData.description} onChange={e=>setFormData({...formData, description: e.target.value})} slotProps={{ input: { sx: { borderRadius: '32px', padding: '24px' } } }} />
-                                        
+                                        <TextField label="General Job Description" multiline rows={4} fullWidth value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} slotProps={{ input: { sx: { borderRadius: '32px', padding: '24px' } } }} />
+
                                         <div>
                                             <div className="flex items-center justify-between mb-8">
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black">03</div>
-                                                    <Typography className="text-2xl font-black uppercase italic tracking-tight underline decoration-indigo-500 underline-offset-8">Service Summary *</Typography>
+                                                    <Typography className="text-2xl font-black uppercase italic tracking-tight">Service Summary</Typography>
                                                 </div>
                                                 <Button onClick={addSummaryStep} variant="outlined" className="rounded-xl font-black" startIcon={<FuseSvgIcon>heroicons-outline:plus-circle</FuseSvgIcon>}>Add Step</Button>
                                             </div>
@@ -558,7 +781,7 @@ const ServiceReportPage: FC = () => {
                                                 {formData.service_summary.map((step, i) => (
                                                     <div key={i} className="flex gap-4 items-center animate-in slide-in-from-left-4 fade-in">
                                                         <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-black flex-shrink-0">{i + 1}</div>
-                                                        <TextField fullWidth placeholder={`Step ${i+1} details...`} value={step} onChange={e => updateSummaryStep(i, e.target.value)} variant="standard" slotProps={{ input: { sx: { fontWeight: 600 } } }} />
+                                                        <TextField fullWidth placeholder={`Step ${i + 1} details...`} value={step} onChange={e => updateSummaryStep(i, e.target.value)} variant="standard" slotProps={{ input: { sx: { fontWeight: 600 } } }} />
                                                         <IconButton onClick={() => removeSummaryStep(i)} className="text-slate-300 hover:text-rose-500"><FuseSvgIcon size={18}>heroicons-outline:x-circle</FuseSvgIcon></IconButton>
                                                     </div>
                                                 ))}
@@ -579,17 +802,17 @@ const ServiceReportPage: FC = () => {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                                             {editingReport?.photos.map(p => (
                                                 <div key={p.id} className="space-y-4">
-                                                    <div 
+                                                    <div
                                                         onClick={() => setLightboxImage(`${API_BASE_URL}/storage/${p.photo_path}`)}
                                                         className="relative group rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white h-[500px] cursor-zoom-in"
                                                     >
-                                                        <CardMedia 
-                                                            component="img" 
-                                                            image={`${API_BASE_URL}/storage/${p.photo_path}`} 
-                                                            className="h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
+                                                        <CardMedia
+                                                            component="img"
+                                                            image={`${API_BASE_URL}/storage/${p.photo_path}`}
+                                                            className="h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                                                         />
                                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all bg-gradient-to-t from-slate-900/80 to-transparent">
-                                                            <IconButton onClick={(e)=>{ e.stopPropagation(); handleDeletePhoto(p.id); }} className="bg-rose-500 text-white p-4 shadow-xl">
+                                                            <IconButton onClick={(e) => { e.stopPropagation(); handleDeletePhoto(p.id); }} className="bg-rose-500 text-white p-4 shadow-xl">
                                                                 <FuseSvgIcon size={28}>heroicons-outline:trash</FuseSvgIcon>
                                                             </IconButton>
                                                         </div>
@@ -603,7 +826,7 @@ const ServiceReportPage: FC = () => {
                                             ))}
                                             {photoPreviews.map((p, i) => (
                                                 <div key={i} className="space-y-4">
-                                                    <div 
+                                                    <div
                                                         onClick={() => setLightboxImage(p)}
                                                         className="relative rounded-[3rem] overflow-hidden shadow-2xl border-4 border-dashed border-indigo-400 h-[500px] animate-pulse cursor-zoom-in"
                                                     >
@@ -634,11 +857,11 @@ const ServiceReportPage: FC = () => {
                                         <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
                                             <div>
                                                 <Typography className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-10">Job Summary Signature</Typography>
-                                                <TextField label="Date" type="date" value={formData.summary_date} onChange={e=>setFormData({...formData, summary_date: e.target.value})} fullWidth variant="standard" />
+                                                <TextField label="Date" type="date" value={formData.summary_date} onChange={e => setFormData({ ...formData, summary_date: e.target.value })} fullWidth variant="standard" />
                                             </div>
                                             <div>
                                                 <Typography className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-10">Verification Time</Typography>
-                                                <TextField label="Time" type="time" value={formData.summary_time} onChange={e=>setFormData({...formData, summary_time: e.target.value})} fullWidth variant="standard" />
+                                                <TextField label="Time" type="time" value={formData.summary_time} onChange={e => setFormData({ ...formData, summary_time: e.target.value })} fullWidth variant="standard" />
                                             </div>
                                             <div className="flex flex-col justify-end">
                                                 <Typography className="text-sm font-black italic text-indigo-600 mb-2">Certified Documentation</Typography>
@@ -670,58 +893,78 @@ const ServiceReportPage: FC = () => {
                 }}
             >
                 <div className="relative w-full h-full flex items-center justify-center p-12">
-                    <IconButton 
+                    <IconButton
                         onClick={() => setLightboxImage(null)}
                         className="absolute top-10 right-10 text-white bg-white/10 hover:bg-white/20 p-4"
                     >
                         <FuseSvgIcon size={40}>heroicons-outline:x-mark</FuseSvgIcon>
                     </IconButton>
-                    <motion.img 
+                    <motion.img
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        src={lightboxImage || ''} 
+                        src={lightboxImage || ''}
                         className="max-w-full max-h-full object-contain rounded-[3rem] shadow-[0_0_100px_rgba(0,0,0,0.5)]"
                         alt="Service Documentation Full"
                     />
                 </div>
             </Dialog>
 
-            {/* Hidden Print Layout */}
-            <div id="print-service-report-container" className="hidden print:block bg-white min-h-screen">
-                <style dangerouslySetInnerHTML={{ __html: `
-                    @media print {
-                        * { 
-                            -webkit-print-color-adjust: exact !important; 
-                            print-color-adjust: exact !important; 
-                            color-adjust: exact !important;
-                        }
-                        /* Hide navigation, sidebar, and other UI layers specifically */
-                        header, nav, aside, [role="navigation"], .navbar, .sidebar { 
-                            display: none !important; 
-                        }
-
-                        body * { visibility: hidden !important; }
-                        #print-service-report-container, #print-service-report-container * { visibility: visible !important; }
-                        #print-service-report-container { 
-                            position: fixed !important; 
-                            left: 0 !important; 
-                            top: 0 !important; 
-                            width: 100% !important;
-                            height: auto !important;
-                            display: block !important; 
-                            margin: 0 !important;
-                            padding: 15mm !important;
-                            box-sizing: border-box !important;
-                            background: white !important;
-                            z-index: 9999999 !important;
-                        }
-                        @page { margin: 0; size: A4 portrait; }
-                    }
-                `}} />
-                <div className="w-full">
-                    {renderPrintLayout()}
-                </div>
+            {/* Forced Image Preloader - Uses opaque negligible dimensions to force eager network decoding */}
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '1px', height: '1px', overflow: 'hidden', opacity: 0.001, pointerEvents: 'none', zIndex: -1 }}>
+                {(editingReport?.photos || []).map(p => <img key={`preload-server-${p.id}`} src={`${API_BASE_URL}/storage/${p.photo_path}`} alt="" loading="eager" crossOrigin="anonymous" />)}
+                {photoPreviews.map((p, i) => <img key={`preload-local-${i}`} src={p} alt="" loading="eager" />)}
             </div>
+
+            {/* Print Layout - Positioned off-screen to force eager image loading in the browser thread */}
+            {/* Print Portal - Direct child of body to guarantee layout freedom */}
+            {mounted && createPortal(
+                <div id="print-service-report-container" style={{ position: 'fixed', top: -99999, left: -99999, pointerEvents: 'none' }}>
+                    <style dangerouslySetInnerHTML={{
+                        __html: `
+                        @media print {
+                            * { 
+                                -webkit-print-color-adjust: exact !important; 
+                                print-color-adjust: exact !important; 
+                                color-adjust: exact !important;
+                            }
+
+                            /* Body visibility:hidden is set in the main style above.
+                               Everything inside our portal is made visible again. */
+                            #print-service-report-container {
+                                display: block !important;
+                                visibility: visible !important;
+                                position: static !important;
+                                width: 100% !important;
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                background: white !important;
+                                pointer-events: auto !important;
+                            }
+
+                            #print-service-report-container * {
+                                visibility: visible !important;
+                            }
+
+                            #print-service-report-container img {
+                                display: block !important;
+                                max-width: 100% !important;
+                                height: auto !important;
+                                object-fit: contain !important;
+                            }
+
+                            table, tr, td, div { page-break-inside: auto !important; }
+                            tr, .photo-block { page-break-inside: avoid !important; }
+                            .page-break-before-always { page-break-before: always !important; }
+
+                            @page { margin: 1.5cm; size: A4 portrait; }
+                        }
+                    `}} />
+                    <div className="w-full">
+                        {renderPrintLayout()}
+                    </div>
+                </div>,
+                document.body
+            )}
         </div>
     );
 };

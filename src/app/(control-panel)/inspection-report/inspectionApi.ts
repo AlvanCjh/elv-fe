@@ -5,12 +5,15 @@ export interface InspectionReport {
     id: number;
     project_id: number;
     title: string;
+    rfwi_ref_no?: string;
     description?: string;
     location?: string;
     inspector_name?: string;
     inspection_date?: string;
     status: string;
     remarks?: string;
+    linked_service_report_id?: number;
+    linkedServiceReport?: any;
     created_at: string;
     updated_at: string;
 }
@@ -34,6 +37,7 @@ export const useAddInspectionReport = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['inspection-reports'] });
+            queryClient.invalidateQueries({ queryKey: ['service-reports'] });
         }
     });
 };
@@ -46,6 +50,7 @@ export const useUpdateInspectionReport = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['inspection-reports'] });
+            queryClient.invalidateQueries({ queryKey: ['service-reports'] });
         }
     });
 };

@@ -225,11 +225,13 @@ The Onsite Report dashboard provides a centralized "Bento-style" overview of cri
 - **Inspection Reports**: Track and manage mandatory site inspections. Each report is categorized by floor and system type, requiring supervisor approval for final closure.
 - **Maintenance Logs**: A comprehensive journal of all hardware and system maintenance tasks (e.g., server filter replacements, camera calibration), ensuring a clear audit trail of equipment upkeep.
 - **Overall Risk Assessment**: A module dedicated to documenting site safety audits and occupational hazard evaluations to maintain a safe working environment for all technicians.
+- **Drawing Diagrams**: A centralized repository for uploading and managing project drawing designs. This module allows technical teams to access high-resolution floor plans and site layouts.
+- **Schematic Diagrams**: A dedicated module for viewing logical system schematic architectures. It provides a technical overview of how different ELV systems are interconnected.
 - **Weather Monitoring**: Real-time integration of site-specific weather conditions (Temperature, Humidity, Wind Speed) and multi-day forecasts to help plan outdoor or height-critical works.
 
 > [!TIP]
 > **[SCREENSHOT: Onsite Dashboard Overview]**
-> *Capture the main "Onsite Report" landing page showing the four interactive bento-tiles.*
+> *Capture the main "Onsite Report" landing page showing the six interactive bento-tiles.*
 
 ---
 
@@ -264,17 +266,47 @@ A dedicated view for managing the onsite workforce and their shift rotations.
 
 ---
 
-## 9. Team & User Management
+## 9. Project Timeline
+The Project Timeline module provides a high-level visual representation of the project's schedule, allowing managers to compare planned milestones against actual site progress.
+
+### 9.1 Milestone Management
+- **Defining Milestones**: Create key project checkpoints (e.g., "Fiber Backbone Installation", "Server Room Setup") with expected start and completion dates.
+- **Visual Nodes**: Milestones are displayed as interactive nodes on a horizontal axis. Clicking a milestone allows you to drill down into its specific sub-tasks.
+- **Search & Navigation**: Use the "Milestone Viewer" search bar to instantly locate and center the timeline on a specific task.
+
+### 9.2 Expected vs. Actual Tracking
+The timeline is split into two synchronized views:
+1. **Expected Timeline (Blue)**: The original project schedule. This serves as the baseline for all works.
+2. **Actual Progress Timeline (Emerald)**: Real-time data showing when tasks actually started and finished on-site.
+   - *Note: Tasks only appear on the Actual timeline once an 'Actual Start Date' has been logged.*
+
+### 9.3 Sub-Timelines (Phase Management)
+For complex phases, you can create **Sub-Timelines**.
+- Navigate into any milestone to view its internal task breakdown.
+- Sub-tasks are bounded by the dates of their parent milestone, ensuring the overall schedule remains consistent.
+
+### 9.4 Change History & Audit Trail
+To maintain accountability, the system tracks every modification to the timeline.
+- **Mandatory Reasons**: If a milestone's date is changed, the system requires a "Reason for change" to be documented.
+- **Timeline History Table**: At the bottom of the page, a detailed log shows who made the change, what the previous dates were, and the justification provided.
+
+> [!TIP]
+> **[SCREENSHOT: Project Timeline Viewer]**
+> *Capture the dual timeline view (Expected vs. Actual) showing milestones and the connecting signal lines.*
+
+---
+
+## 10. Team & User Management
 The User Management module is a supervisor-only tool for managing project team accounts, roles, and platform access.
 
-### 9.1 Access & Permissions
+### 10.1 Access & Permissions
 - **Supervisors Only**: Access to this module is restricted to users with the Supervisor role. 
 - **Role Hierarchy**:
   - **Supervisor**: Full administrative access to user management, master BOQ uploads, and project-wide settings.
   - **Facilitator**: High-level access for project oversight across multiple system segments.
   - **Member**: Standard access for mapping objects and updating installation statuses.
 
-### 9.2 Managing Team Members
+### 10.2 Managing Team Members
 1. **Creating Accounts**:
    - Click **Add New User** in the top right corner.
    - Provide the staff member's Full Name, Email, and a **Temporary Password**.
@@ -291,20 +323,20 @@ The User Management module is a supervisor-only tool for managing project team a
 
 ---
 
-## 10. Messaging & Communication
+## 11. Messaging & Communication
 The Messaging Model is a real-time communication tool designed to facilitate seamless collaboration between engineers and project managers directly within the platform.
 
-### 10.1 Accessing the Chat
+### 11.1 Accessing the Chat
 The chat interface is accessible via a persistent floating widget at the bottom-right corner of the screen.
 - Click the **Indigo Chat Icon** to expand the messaging window.
 - Click the **'X'** in the header or the bubble icon again to minimize the chat.
 
-### 10.2 Communication Channels
+### 11.2 Communication Channels
 The system supports two primary communication modes:
 1. **Global Channel**: A project-wide broadcast area for general technical discussions and announcements. Messages sent here are visible to all registered project users.
 2. **Private Messaging**: One-on-one communication with specific team members.
 
-### 10.3 Contact List & Online Status
+### 11.3 Contact List & Online Status
 To communicate with a specific team member:
 1. Toggle to the **Engineers** tab in the chat widget.
 2. View the list of all project users and their live status:
@@ -312,7 +344,7 @@ To communicate with a specific team member:
    - **Grey/Offline**: The user is currently disconnected.
 3. Click on any name to initiate or continue a private conversation.
 
-### 10.4 Message Features
+### 11.4 Message Features
 - **Project Context**: Use the chat for quick site updates and technical queries that require immediate attention.
 - **Relatvie Timestamps**: Monitor the flow of information with live timestamps (e.g., "5 minutes ago").
 - **Auto-Refresh**: New messages appear instantly without requiring a page reload.
@@ -323,7 +355,7 @@ To communicate with a specific team member:
 
 ---
 
-## 11. Troubleshooting & FAQ
+## 12. Troubleshooting & FAQ
 
 **Q: My object is on the map but the sidebar still says "Unassigned".**
 *A: Ensure the "Item Alias ID" exactly matches the ID in the CSV (e.g., `R4-L5-1`). Check that you have selected the correct floor in the sidebar filter.*
@@ -332,5 +364,5 @@ To communicate with a specific team member:
 *A: The system automatically marks the BOQ item as "Unassigned" again so you can re-map it later.*
 
 ---
-*Manual Generated on 2026-04-10*
+*Manual Generated on 2026-05-08*
 

@@ -9,6 +9,7 @@ export type User = FuseAuthUser & {
 	id: string;
 	role: string[] | string | null;
 	displayName: string;
+	name?: string;
 	photoURL?: string;
 	email?: string;
 	shortcuts?: string[];

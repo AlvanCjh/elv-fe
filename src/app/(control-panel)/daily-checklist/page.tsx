@@ -1,3 +1,4 @@
+"use client";
 import React, { FC, useState, useMemo, useEffect, Fragment } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -50,7 +51,7 @@ export const EText = ({ id, fallback, className = '', editable, bigger = false, 
       try {
         const data = JSON.parse(saved);
         if (data[id]) setVal(data[id]);
-      } catch (e) {}
+      } catch (e) { }
     }
   }, [id]);
 
@@ -63,7 +64,7 @@ export const EText = ({ id, fallback, className = '', editable, bigger = false, 
       data[id] = newText;
       localStorage.setItem('elv_tmpl_text', JSON.stringify(data));
       if (onChange) onChange(newText);
-    } catch (e) {}
+    } catch (e) { }
   };
 
   return (
@@ -71,11 +72,10 @@ export const EText = ({ id, fallback, className = '', editable, bigger = false, 
       contentEditable={editable}
       suppressContentEditableWarning
       onBlur={handleBlur}
-      className={`${className} ${bigger ? 'text-[15px] font-black' : ''} ${
-        editable 
-          ? 'border-b-2 border-dashed border-amber-400 bg-amber-50/50 cursor-text px-1 rounded transition-all duration-200' 
+      className={`${className} ${bigger ? 'text-[15px] font-black' : ''} ${editable
+          ? 'border-b-2 border-dashed border-amber-400 bg-amber-50/50 cursor-text px-1 rounded transition-all duration-200'
           : 'transition-all duration-200'
-      } print:border-none print:bg-transparent print:p-0 print:font-bold`}
+        }`}
     >
       {val}
     </div>
@@ -95,37 +95,37 @@ const COMPANIES = [
 const DEFAULT_SECTIONS = () => ({
   ups_system: [
     {
-      id: "UPS #P1", sn: "101200726177010001", type: "PH-PH",
-      r_in: { l1: "", l2: "", l3: "", f: "" },
-      inv_out: { l1: "", l2: "", l3: "", f: "" },
-      cur: { l1: "", l2: "", l3: "" },
-      load: { l1: "", l2: "", l3: "" },
+      id: "UPS #P1", sn: "101200726177010001",
+      r_in: { ry: "", yb: "", br: "", freq: "" },
+      inv_out: { ry: "", yb: "", br: "", freq: "" },
+      cur: { r: "", y: "", b: "" },
+      load: { r: "", y: "", b: "" },
       dc: "",
     },
     {
-      id: "UPS #P2", sn: "101200726177010002", type: "PH-N",
-      r_in: { l1: "", l2: "", l3: "", f: "" },
-      inv_out: { l1: "", l2: "", l3: "", f: "" },
-      cur: { l1: "", l2: "", l3: "" },
-      load: { l1: "", l2: "", l3: "" },
+      id: "UPS #P2", sn: "101200726177010002",
+      r_in: { rn: "", yn: "", bn: "", freq: "" },
+      inv_out: { rn: "", yn: "", bn: "", freq: "" },
+      cur: { r: "", y: "", b: "" },
+      load: { r: "", y: "", b: "" },
       dc: "",
     },
   ],
   pecs_system: [
     { id: "PEC #1", temp: "", hum: "", status: "STANDBY", cool: "", alarm: "OFF" },
-    { id: "PEC #2", temp: "", hum: "", status: "ON DUTY", cool: "", alarm: "ON"  },
+    { id: "PEC #2", temp: "", hum: "", status: "ON DUTY", cool: "", alarm: "ON" },
   ],
   bms_readings: [
-    { num: 1,  id: "Telco Room",   temp: "", hum: "" },
-    { num: 2,  id: "Staging Room", temp: "", hum: "" },
-    { num: 3,  id: "MNE Room",     temp: "", hum: "" },
-    { num: 4,  id: "Zone 1",       temp: "", hum: "" },
-    { num: 5,  id: "",              temp: "", hum: "" },
-    { num: 6,  id: "Zone 2",       temp: "", hum: "" },
-    { num: 7,  id: "",              temp: "", hum: "" },
-    { num: 8,  id: "MNE UPS",      temp: "", hum: "" },
-    { num: 9,  id: "",              temp: "", hum: "" },
-    { num: 10, id: "Zone 3",       temp: "", hum: "" },
+    { num: 1, id: "Telco Room", temp: "", hum: "" },
+    { num: 2, id: "Staging Room", temp: "", hum: "" },
+    { num: 3, id: "MNE Room", temp: "", hum: "" },
+    { num: 4, id: "Zone 1", temp: "", hum: "" },
+    { num: 5, id: "", temp: "", hum: "" },
+    { num: 6, id: "Zone 2", temp: "", hum: "" },
+    { num: 7, id: "", temp: "", hum: "" },
+    { num: 8, id: "MNE UPS", temp: "", hum: "" },
+    { num: 9, id: "", temp: "", hum: "" },
+    { num: 10, id: "Zone 3", temp: "", hum: "" },
   ],
   pdu_system: [
     { id: "PDU #3A", p3: { ry: "", yb: "", br: "" }, p1: { rn: "", yn: "", bn: "" } },
@@ -140,7 +140,7 @@ const DEFAULT_SECTIONS = () => ({
   hssd_status: {
     operation: "NORMAL",
     detectors: [
-      { id: "det1", fire: false, fault: false, ok: true  },
+      { id: "det1", fire: false, fault: false, ok: true },
       { id: "det2", fire: false, fault: false, ok: false },
       { id: "det3", fire: false, fault: false, ok: false },
     ],
@@ -153,157 +153,152 @@ const DEFAULT_SECTIONS = () => ({
       { id: "E103", status: "OK" },
     ],
   },
-  ups_sb: {
-    main_acb: "ON", genset_acb: "OFF", avr_acb: "ON",
-    main_v: "", main_a: "",
-    genset_v: "", genset_a: "",
-    avr_v: "", avr_a: "",
-    v_ry: "", v_yb: ""
+  ups_switchboard: {
+    main_acb: "ON", genset_acb: "OFF", ess_avr_acb: "ON",
+    v: { ry: "", yb: "", br: "", rn: "", yn: "", bn: "" },
+    cur: { r: "", y: "", b: "", n: "" },
+    load: "",
   },
-  ac_sb: {
+  aircond_switchboard: {
     main_breaker: "ON",
-    voltage: ""
+    v: { ry: "", yb: "", br: "", rn: "", yn: "", bn: "" },
+    cur: { r: "", y: "", b: "", n: "" },
+    load: "",
   },
-  genset: {
-    acb1: "ON", acb2: "OFF",
-    v1: "", v2: "",
-    a1: "", a2: ""
-  },
-  fire_alarm: {
-    panels: [
-      { id: "Fire Panel #1 (Security Room)", bell: "ON", buzzer: "ON", fap: "ON", batt_v: "", amp: "" },
-      { id: "Fire Panel #2 (Genset)",        bell: "ON", buzzer: "ON", fap: "ON", batt_v: "", amp: "" },
-      { id: "Fire Panel #3 (Lobby)",         bell: "ON", buzzer: "ON", fap: "ON", batt_v: "", amp: "" },
-    ]
-  },
-  fcu_status: [
-    { id: "FCU #1A", status: "ON",  comp: "ON",  remark: "" },
-    { id: "FCU #1B", status: "OFF", comp: "OFF", remark: "" },
-    { id: "FCU #2A", status: "ON",  comp: "ON",  remark: "" },
-    { id: "FCU #2B", status: "ON",  comp: "ON",  remark: "" },
+  genset: [
+    { id: "GEN #1", dc: "ON", mode: "AUTO", charger: "ON", fuel: "", float_switch: "FLOAT", acb: "ON", emergency_stop: false },
+    { id: "GEN #2", dc: "OFF", mode: "AUTO", charger: "OFF", fuel: "", float_switch: "FLOAT", acb: "ON", emergency_stop: false },
   ],
+  fire_alarm: [
+    { id: "Fire Panel #1 (Security Room)", bell: "ON", buzzer: "ON", fap: "ON", batt_v: "", amp: "" },
+    { id: "Fire Panel #2 (Genset)", bell: "ON", buzzer: "ON", fap: "ON", batt_v: "", amp: "" },
+    { id: "Fire Panel #3 (Lobby)", bell: "ON", buzzer: "ON", fap: "ON", batt_v: "", amp: "" },
+  ],
+  fcu_status: {
+    fcu1a: "ON", fcu1b: "OFF", gas_leakage_1: "OFF (GAS LEAKAGE)",
+    fcu2a: "ON", fcu2b: "ON",
+  },
   transformer_fan: { f1: true, f2: true, f3: true, f4: true },
   mne_aircon: { ac1: "ON", ac2: "ON" },
   avr_fan: { f1: true, f2: true, f3: true, f4: true, f5: true, f6: true, f7: true, f8: true },
 });
 
-export const CellIn = ({ value, onChange, disabled, type = "text", className = "" }: any) => (
-  <div className={`w-full h-full min-h-[14px] flex items-center justify-center ${className}`}>
-    <input 
-      type={type}
-      className="w-full h-full text-center outline-none bg-transparent screen-only border-none p-0 text-[10px]" 
-      value={value} 
-      onChange={onChange}
-      disabled={disabled}
-    />
-    <span className="print-only text-slate-950 font-bold text-[10px] w-full text-center">
-      {value || ""}
-    </span>
-  </div>
+const CellIn = ({ value, onChange, disabled, sx, placeholder }: any) => (
+  <TextField
+    size="small" variant="standard"
+    value={value} onChange={onChange} disabled={disabled}
+    placeholder={placeholder} multiline maxRows={3} fullWidth
+    slotProps={{
+      input: {
+        sx: {
+          fontSize: 14, textAlign: "center", fontWeight: 600,
+          padding: "2px 4px", borderRadius: "4px",
+          backgroundColor: disabled ? "transparent" : "rgba(219,234,254,0.3)",
+          "& input": { textAlign: "center" },
+          "& textarea": { textAlign: "center" },
+          ...sx,
+        },
+      },
+    }}
+  />
 );
 
 const OnOff = ({ value, onChange, disabled }: any) => (
-  <div className="flex items-center justify-center gap-1">
-    <button
-      disabled={disabled}
-      onClick={() => !disabled && onChange(value === "ON" ? "OFF" : "ON")}
-      className={`print:hidden px-1.5 py-0.5 text-[8px] font-black rounded border transition-all ${
-        value === "ON"
-          ? "bg-emerald-50 border-emerald-400 text-emerald-800"
-          : "bg-red-50 border-red-400 text-red-700"
+  <button
+    disabled={disabled}
+    onClick={() => !disabled && onChange(value === "ON" ? "OFF" : "ON")}
+    className={`px-1.5 py-0.5 text-[8px] font-black rounded border transition-all ${value === "ON"
+        ? "bg-emerald-50 border-emerald-400 text-emerald-800"
+        : "bg-red-50 border-red-400 text-red-700"
       }`}
-    >{value}</button>
-    <div className="hidden print:flex items-center gap-1 text-[9px] font-black uppercase">
-       <div className={`w-3 h-3 border border-black flex items-center justify-center ${value === 'ON' ? 'bg-black text-white' : ''}`}>
-         {value === 'ON' ? 'v' : ' '}
-       </div>
-       <span>ON</span>
-       <div className={`w-3 h-3 border border-black flex items-center justify-center ${value === 'OFF' ? 'bg-black text-white' : ''}`}>
-         {value === 'OFF' ? 'v' : ' '}
-       </div>
-       <span>OFF</span>
-    </div>
-  </div>
+  >{value}</button>
 );
 
-const renderUPSSection = (fd: any, set: any, disabled: boolean, editable: boolean, hdr: string) => {
-  const th = "text-[9px] font-black border border-slate-900 text-center bg-slate-100 p-0.5 uppercase";
-  const td = "text-[9px] border border-slate-900 p-0";
-  const tdl = "text-[10px] font-bold border border-slate-900 p-1 uppercase text-slate-700 leading-tight";
+const renderUPSSection = (fd: any, set: any, disabled: boolean, editable: boolean) => {
+  const th = "text-[12px] sm:text-[10px] font-black border border-slate-900 text-center bg-slate-100 p-1 uppercase";
+  const td = "text-[13px] sm:text-[11px] border border-slate-900 p-0";
+  const tdl = "text-[13px] sm:text-[11px] font-bold border border-slate-900 p-2 uppercase text-slate-700";
   const unitCount = fd.ups_system?.length || 0;
 
   return (
     <>
-      <div className="text-[11px] font-black text-center bg-slate-200 border-b border-slate-900 p-1 uppercase text-slate-800">
-        <EText id="hdr_1" fallback={hdr} className="outline-none w-full block" editable={editable} />
+      <div className="text-[13px] font-black text-center bg-slate-200 border-b border-slate-900 p-1.5 uppercase text-slate-800">
+        <EText id="hdr_1" fallback="1. UPS SYSTEM (APM-120KVA)" className="outline-none w-full block" editable={editable} />
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-[9px]">
+        <table className="w-full border-collapse text-[11px]">
           <thead>
             <tr>
-              <th className={`${th} w-20 text-[8px]`} rowSpan={2}><EText id="ups_th_desc" fallback="DESCRIPTIONS" editable={editable} /></th>
-              {fd.ups_system?.map((u: any, i: number) => (
+              <th className={`${th} w-20`} rowSpan={2}><EText id="ups_th_desc" fallback="DESCRIPTIONS" editable={editable} /></th>
+              {(Array.isArray(fd.ups_system) ? fd.ups_system : []).map((u: any, i: number) => (
                 <th key={i} className={th} colSpan={4}>
-                   <div className="flex flex-col items-center gap-0">
-                    <EText 
-                      id={`ups_grp_hdr_v2_${i}`} fallback={`${u.id} (s/n : ${u.sn})`} editable={editable} 
+                  <div className="flex flex-col items-center gap-1">
+                    {editable && (
+                      <IconButton size="small" className="p-0 text-rose-500" onClick={() => {
+                        const nd = fd.ups_system
+                          .filter((_: any, idx: number) => idx !== i)
+                          .map((u: any, idx: number) => ({ ...u, id: `UPS Unit #${idx + 1}` }));
+                        set({ ups_system: nd });
+                      }}>
+                        <FuseSvgIcon size={12}>heroicons-outline:trash</FuseSvgIcon>
+                      </IconButton>
+                    )}
+                    <EText
+                      id={`ups_grp_hdr_v2_${i}`} fallback={`${u.id} (s/n : ${u.sn})`} editable={editable}
                       onChange={(val) => {
                         const nd = [...fd.ups_system];
                         nd[i].id = val;
                         set({ ups_system: nd });
-                      }} 
+                      }}
                     />
                   </div>
                 </th>
               ))}
             </tr>
             <tr>
-               {fd.ups_system?.map((u: any, i: number) => (
-                 <Fragment key={i}>
-                   <th className={`${th} text-rose-600`}>{u.type === 'PH-N' ? 'R-N' : 'R-Y'}</th>
-                   <th className={`${th} text-amber-500`}>{u.type === 'PH-N' ? 'Y-N' : 'Y-B'}</th>
-                   <th className={`${th} text-sky-600`}>{u.type === 'PH-N' ? 'B-N' : 'B-R'}</th>
-                   <th className={`${th} text-slate-800`}>Freq</th>
-                 </Fragment>
-               ))}
-             </tr>
-           </thead>
-           <tbody>
-             {[
-               { label: 'Rectifier Input Voltage (Vac)', key: 'r_in', fields: ['l1','l2','l3','f'], id: 'ups_r1' },
-               { label: 'Inverter Output Voltage (Vac)', key: 'inv_out', fields: ['l1','l2','l3','f'], id: 'ups_r2' },
-               { label: 'Output Current (Amp)', key: 'cur', fields: ['l1','l2','l3',null], id: 'ups_r3' },
-               { label: 'Load %', key: 'load', fields: ['l1','l2','l3',null], id: 'ups_r4' },
-             ].map(row => (
-              <tr key={row.id}>
+              {(Array.isArray(fd.ups_system) ? fd.ups_system : []).map((_: any, i: number) => (
+                <Fragment key={i}>
+                  {['R-Y (L1)', 'Y-B (L2)', 'B-R (L3)', 'Freq'].map((h, hi) => <th key={hi} className={th}>{h}</th>)}
+                </Fragment>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              { label: 'Rectifier Input Voltage (Vac)', key: 'r_in', fields: ['ry', 'yb', 'br', 'freq'], id: 'ups_r1' },
+              { label: 'Inverter Output Voltage (Vac)', key: 'inv_out', fields: ['ry', 'yb', 'br', 'freq'], id: 'ups_r2' },
+              { label: 'Output Current (Amp)', key: 'cur', fields: ['r', 'y', 'b', null], id: 'ups_r3' },
+              { label: 'Load %', key: 'load', fields: ['r', 'y', 'b', null], id: 'ups_r4' },
+            ].map(row => (
+              <tr key={row.id} className="even:bg-slate-50/50 hover:bg-indigo-50/10 transition-colors">
                 <td className={tdl}><EText id={row.id} fallback={row.label} editable={editable} /></td>
-                {fd.ups_system?.map((u: any, ui: number) => (
+                {(Array.isArray(fd.ups_system) ? fd.ups_system : []).map((u: any, ui: number) => (
                   row.fields.map((f: any, fi: number) => (
                     <td key={`${ui}-${fi}`} className={td}>
-                      {f ? <CellIn disabled={disabled} value={u[row.key]?.[f] ?? ''} onChange={(e: any) => { 
-                        const nd = [...fd.ups_system]; 
-                        nd[ui] = { ...nd[ui], [row.key]: { ...nd[ui][row.key], [f]: e.target.value } }; 
-                        set({ ups_system: nd }); 
-                      }} /> : <div className="bg-slate-50/10 h-4" />}
+                      {f ? <CellIn disabled={disabled} value={u[row.key]?.[f] ?? ''} onChange={(e: any) => {
+                        const nd = [...fd.ups_system];
+                        nd[ui] = { ...nd[ui], [row.key]: { ...nd[ui][row.key], [f]: e.target.value } };
+                        set({ ups_system: nd });
+                      }} /> : <div className="bg-slate-50/30 h-5" />}
                     </td>
                   ))
                 ))}
               </tr>
             ))}
-            <tr>
+            <tr className="even:bg-slate-50/50 hover:bg-indigo-50/10 transition-colors">
               <td className={tdl}><EText id="ups_r5" fallback="DC Voltage / Current" editable={editable} /></td>
-              {fd.ups_system?.map((u: any, ui: number) => (
+              {(Array.isArray(fd.ups_system) ? fd.ups_system : []).map((u: any, ui: number) => (
                 <td key={ui} colSpan={4} className={td}>
                   <CellIn disabled={disabled} value={u.dc ?? ''} onChange={(e: any) => { const nd = [...fd.ups_system]; nd[ui].dc = e.target.value; set({ ups_system: nd }); }} />
                 </td>
               ))}
             </tr>
             {editable && (
-              <tr className="print:hidden">
-                <td colSpan={1 + (unitCount * 4)} className="p-1 border border-slate-900 bg-slate-50">
-                   <Button 
-                    size="small" fullWidth startIcon={<FuseSvgIcon size={12}>heroicons-outline:plus</FuseSvgIcon>}
-                    className="font-black text-[9px] text-indigo-600 border border-dashed border-indigo-200"
+              <tr>
+                <td colSpan={1 + (unitCount * 4)} className="p-2 border border-slate-900 bg-slate-50">
+                  <Button
+                    size="small" fullWidth startIcon={<FuseSvgIcon size={14}>heroicons-outline:plus</FuseSvgIcon>}
+                    className="font-black text-[10px] text-indigo-600 border border-dashed border-indigo-200"
                     onClick={() => {
                       const nd = [...fd.ups_system, { id: `UPS Unit #${fd.ups_system.length + 1}`, sn: "", r_in: { ry: "", yb: "", br: "", freq: "" }, inv_out: { ry: "", yb: "", br: "", freq: "" }, cur: { r: "", y: "", b: "" }, load: { r: "", y: "", b: "" }, dc: "" }];
                       set({ ups_system: nd });
@@ -312,7 +307,7 @@ const renderUPSSection = (fd: any, set: any, disabled: boolean, editable: boolea
                 </td>
               </tr>
             )}
-            <tr><td colSpan={1 + (unitCount * 4)} className="border border-slate-900 p-1"><EText id="ups_note1" fallback="NOTE:" bigger editable={editable} /></td></tr>
+            <tr><td colSpan={1 + (unitCount * 4)} className="border border-slate-900 p-1.5"><EText id="ups_note1" fallback="NOTE:" bigger editable={editable} /></td></tr>
           </tbody>
         </table>
       </div>
@@ -320,37 +315,37 @@ const renderUPSSection = (fd: any, set: any, disabled: boolean, editable: boolea
   );
 };
 
-const renderPECSSection = (fd: any, set: any, disabled: boolean, editable: boolean, hdr: string) => {
-  const th = "text-[9px] font-black border border-slate-900 text-center bg-slate-100 p-0.5 uppercase";
-  const td = "text-[9px] border border-slate-900 p-0";
-  const tdl = "text-[10px] font-bold border border-slate-900 p-1 uppercase text-slate-700 leading-tight";
+const renderPECSSection = (fd: any, set: any, disabled: boolean, editable: boolean) => {
+  const th = "text-[12px] sm:text-[10px] font-black border border-slate-900 text-center bg-slate-100 p-1 uppercase";
+  const td = "text-[13px] sm:text-[11px] border border-slate-900 p-0";
+  const tdl = "text-[13px] sm:text-[11px] font-bold border border-slate-900 p-2 uppercase text-slate-700";
   return (
     <>
-      <div className="text-[11px] font-black text-center bg-slate-200 border-y border-slate-900 p-1 uppercase text-slate-800">
-        <EText id="hdr_2" fallback={hdr} className="outline-none w-full block" editable={editable} />
+      <div className="text-[13px] font-black text-center bg-slate-200 border-y border-slate-900 p-1.5 uppercase text-slate-800">
+        <EText id="hdr_2" fallback="2. PECS SYSTEM DB-AIRE / DBAD26Q Vision 2020I" className="outline-none w-full block" editable={editable} />
       </div>
-      <table className="w-full border-collapse text-[9px]">
+      <table className="w-full border-collapse text-[11px]">
         <thead>
           <tr>
             <th className={`${th} w-12`} rowSpan={2}><EText id="pecs_th1" fallback="PECS No." editable={editable} /></th>
-            <th className={th} colSpan={2}><EText id="pecs_th2" fallback="Display (Return air)" editable={editable} /></th>
+            <th className={th} colSpan={2}><EText id="pecs_th2" fallback="On-Panel Display (Of Return air)" editable={editable} /></th>
             <th className={th} colSpan={2}><EText id="pecs_th3" fallback="Operation Status" editable={editable} /></th>
-            <th className={th} rowSpan={2}><EText id="pecs_th4" fallback="MSG" editable={editable} /></th>
+            <th className={th} rowSpan={2}><EText id="pecs_th4" fallback="MSG Alarm" editable={editable} /></th>
           </tr>
           <tr>
-            <th className={th}>Temp</th>
-            <th className={th}>Hum</th>
-            <th className={th}>Mode</th>
-            <th className={th}>Cool</th>
+            <th className={th}><EText id="pecs_th5" fallback="Temperature" editable={editable} /></th>
+            <th className={th}><EText id="pecs_th6" fallback="Humidity" editable={editable} /></th>
+            <th className={th}><EText id="pecs_th7" fallback="Mode" editable={editable} /></th>
+            <th className={th}><EText id="pecs_th8" fallback="% Cooling" editable={editable} /></th>
           </tr>
         </thead>
         <tbody>
-          {fd.pecs_system?.map((p: any, idx: number) => (
-            <tr key={idx}>
+          {(Array.isArray(fd.pecs_system) ? fd.pecs_system : []).map((p: any, idx: number) => (
+            <tr key={idx} className="even:bg-slate-50/50 hover:bg-indigo-50/10 transition-colors">
               <td className={tdl}>
                 <div className="flex items-center gap-1">
                   {editable && (
-                    <IconButton size="small" className="p-0 text-rose-500 print:hidden" onClick={() => {
+                    <IconButton size="small" className="p-0 text-rose-500" onClick={() => {
                       const nd = fd.pecs_system
                         .filter((_: any, i: number) => i !== idx)
                         .map((p: any, i: number) => ({ ...p, id: `PEC #${i + 1}` }));
@@ -359,38 +354,40 @@ const renderPECSSection = (fd: any, set: any, disabled: boolean, editable: boole
                       <FuseSvgIcon size={12}>heroicons-outline:trash</FuseSvgIcon>
                     </IconButton>
                   )}
-                  <EText 
-                    id={`pecs_row_${idx}`} fallback={p.id} editable={editable} 
+                  <EText
+                    id={`pecs_row_${idx}`} fallback={p.id} editable={editable}
                     onChange={(val) => {
                       const nd = [...fd.pecs_system];
                       nd[idx].id = val;
                       set({ pecs_system: nd });
-                    }} 
+                    }}
                   />
                 </div>
               </td>
               <td className={td}><CellIn disabled={disabled} value={p.temp ?? ''} onChange={(e: any) => { const nd = [...fd.pecs_system]; nd[idx].temp = e.target.value; set({ pecs_system: nd }); }} /></td>
               <td className={td}><CellIn disabled={disabled} value={p.hum ?? ''} onChange={(e: any) => { const nd = [...fd.pecs_system]; nd[idx].hum = e.target.value; set({ pecs_system: nd }); }} /></td>
-              <td className="border border-slate-900 text-center p-0 font-bold">
-                 <OnOff value={p.status ?? 'OFF'} disabled={disabled} onChange={(v: string) => { const nd = [...fd.pecs_system]; nd[idx].status = v; set({ pecs_system: nd }); }} />
+              <td className="border border-slate-900 text-center p-0.5 font-bold">
+                <OnOff value={p.status ?? 'OFF'} disabled={disabled} onChange={(v: string) => { const nd = [...fd.pecs_system]; nd[idx].status = v; set({ pecs_system: nd }); }} />
               </td>
               <td className={td}><CellIn disabled={disabled} value={p.cool ?? ''} onChange={(e: any) => { const nd = [...fd.pecs_system]; nd[idx].cool = e.target.value; set({ pecs_system: nd }); }} /></td>
-              <td className="border border-slate-900 text-center p-0.5">
-                <Chip size="small" label={p.alarm ?? 'OFF'} color={(p.alarm ?? 'OFF') === 'OFF' ? 'success' : 'error'} sx={{ height: 16, fontSize: 9, fontWeight: 900 }} onClick={() => { if (!disabled) { const nd = [...fd.pecs_system]; nd[idx].alarm = nd[idx].alarm === 'OFF' ? 'ON' : 'OFF'; set({ pecs_system: nd }); } }} />
+              <td className="border border-slate-900 text-center p-1.5">
+                <Chip size="small" label={p.alarm ?? 'OFF'} color={(p.alarm ?? 'OFF') === 'OFF' ? 'success' : 'error'} sx={{ height: 20, fontSize: 10, fontWeight: 900 }} onClick={() => { if (!disabled) { const nd = [...fd.pecs_system]; nd[idx].alarm = nd[idx].alarm === 'OFF' ? 'ON' : 'OFF'; set({ pecs_system: nd }); } }} />
               </td>
             </tr>
           ))}
           {editable && (
-            <tr className="print:hidden">
-              <td colSpan={6} className="p-1 border border-slate-900 bg-slate-50">
-                <Button 
-                  size="small" fullWidth startIcon={<FuseSvgIcon size={12}>heroicons-outline:plus</FuseSvgIcon>}
-                  className="font-black text-[9px] text-indigo-600 border border-dashed border-indigo-200"
+            <tr>
+              <td colSpan={6} className="p-2 border border-slate-900 bg-slate-50">
+                <Button
+                  size="small" fullWidth startIcon={<FuseSvgIcon size={14}>heroicons-outline:plus</FuseSvgIcon>}
+                  className="font-black text-[10px] text-indigo-600 border border-dashed border-indigo-200"
                   onClick={() => {
                     const nd = [...fd.pecs_system, { id: `PEC #${fd.pecs_system.length + 1}`, temp: "", hum: "", status: "OFF", cool: "", alarm: "OFF" }];
                     set({ pecs_system: nd });
                   }}
-                >Add PEC Unit</Button>
+                >
+                  Add PEC Unit
+                </Button>
               </td>
             </tr>
           )}
@@ -400,36 +397,35 @@ const renderPECSSection = (fd: any, set: any, disabled: boolean, editable: boole
   );
 };
 
-const renderPDUSection = (fd: any, set: any, disabled: boolean, editable: boolean, hdr: string) => {
-  const th = "text-[8px] font-black border border-slate-900 text-center bg-slate-100 p-0.5";
-  const td = "text-[8.5px] border border-slate-900 p-0 h-4";
-  const tdl = "text-[9px] font-bold border border-slate-900 p-0.5 uppercase text-slate-600 leading-none";
-
+const renderPDUSection = (fd: any, set: any, disabled: boolean, editable: boolean) => {
+  const th = "text-[12px] sm:text-[10px] font-black border border-slate-900 text-center bg-slate-100 p-1 uppercase";
+  const td = "text-[13px] sm:text-[11px] border border-slate-900 p-0";
+  const tdl = "text-[13px] sm:text-[11px] font-bold border border-slate-900 p-2 uppercase text-slate-700";
   return (
     <>
-      <div className="text-[11px] font-black text-center bg-slate-200 border-y border-slate-900 p-1 uppercase text-slate-800">
-        <EText id="hdr_3" fallback={hdr} className="outline-none w-full block" editable={editable} />
+      <div className="text-[13px] font-black text-center bg-slate-200 border-y border-slate-900 p-1.5 uppercase text-slate-800">
+        <EText id="hdr_3" fallback="3. PDU SYSTEM GE-160A / 54 WAYS" className="outline-none w-full block" editable={editable} />
       </div>
-      <table className="w-full border-collapse text-[9px]">
+      <table className="w-full border-collapse text-[11px]">
         <thead>
           <tr>
-            <th className={`${th} w-[18%]`} rowSpan={2}><EText id="pdu_th1" fallback="PDU NO." editable={editable} /></th>
-            <th className={th} colSpan={3}>3 PHASE V</th>
-            <th className={th} colSpan={3}>1 PHASE V</th>
-            <th className={th} rowSpan={2}>TOT</th>
+            <th className={`${th} w-[18%]`} rowSpan={2}><EText id="pdu_th1" fallback="PDU (GE-160A / 54 WAYS)" editable={editable} /></th>
+            <th className={th} colSpan={3}><EText id="pdu_th2" fallback="3 PHASE VOLTAGE" editable={editable} /></th>
+            <th className={th} colSpan={3}><EText id="pdu_th3" fallback="1 PHASE VOLTAGE" editable={editable} /></th>
+            <th className={th} rowSpan={2}><EText id="pdu_th4" fallback="NEU / TOT" editable={editable} /></th>
           </tr>
           <tr>
-            {['R-Y','Y-B','B-R','R-N','Y-N','B-N'].map((h, i) => <th key={h} className={th}>{h}</th>)}
+            {['R-Y', 'Y-B', 'B-R', 'R-N', 'Y-N', 'B-N'].map((h, i) => <th key={h} className={th}><EText id={`pdu_th_h${i}`} fallback={h} editable={editable} /></th>)}
           </tr>
         </thead>
         <tbody>
-          {fd.pdu_system?.map((p: any, idx: number) => (
+          {(Array.isArray(fd.pdu_system) ? fd.pdu_system : []).map((p: any, idx: number) => (
             p.isTotal ? (
-              <tr key={idx}>
-                <td colSpan={7} className="border border-slate-900 p-0.5 text-right text-[8px] font-black italic bg-slate-50 uppercase tracking-widest leading-none">
+              <tr key={idx} className="even:bg-slate-50/50 hover:bg-indigo-50/30 transition-colors">
+                <td colSpan={7} className="border border-slate-900 p-0.5 text-right text-[8px] font-black italic bg-slate-50 uppercase tracking-widest leading-none mt-1">
                   <div className="flex justify-between items-center px-1">
                     {editable && (
-                      <IconButton size="small" className="p-0 text-rose-300 print:hidden" onClick={() => {
+                      <IconButton size="small" className="p-0 text-rose-300" onClick={() => {
                         const nd = fd.pdu_system.filter((_: any, i: number) => i !== idx);
                         set({ pdu_system: nd });
                       }}>
@@ -442,73 +438,98 @@ const renderPDUSection = (fd: any, set: any, disabled: boolean, editable: boolea
                 <td className={td}><CellIn disabled={disabled} value={p.neutral ?? ''} onChange={(e: any) => { const nd = [...fd.pdu_system]; nd[idx].neutral = e.target.value; set({ pdu_system: nd }); }} /></td>
               </tr>
             ) : (
-              <tr key={idx}>
+              <tr key={idx} className="even:bg-slate-50/50 hover:bg-indigo-50/30 transition-colors">
                 <td className={tdl}>
                   <div className="flex items-center gap-1">
                     {editable && (
-                      <IconButton size="small" className="p-0 text-rose-500 print:hidden" onClick={() => {
+                      <IconButton size="small" className="p-0 text-rose-500" onClick={() => {
                         const filtered = fd.pdu_system.filter((_: any, i: number) => i !== idx);
                         let pduCount = 0;
                         const finalND = filtered.map((p: any) => {
-                           if (p.isTotal) return p;
-                           pduCount++;
-                           return { ...p, id: `PDU #${['A','B','C','D','E','F'][pduCount-1] || pduCount}` };
+                          if (p.isTotal) return p;
+                          pduCount++;
+                          return { ...p, id: `PDU #${['A', 'B', 'C', 'D', 'E', 'F'][pduCount - 1] || pduCount}` };
                         });
                         set({ pdu_system: finalND });
                       }}>
                         <FuseSvgIcon size={12}>heroicons-outline:trash</FuseSvgIcon>
                       </IconButton>
                     )}
-                    <EText id={`pdu_row_${idx}`} fallback={p.id} editable={editable} onChange={(val) => { const nd = [...fd.pdu_system]; nd[idx].id = val; set({ pdu_system: nd }); }} />
+                    <EText
+                      id={`pdu_row_${idx}`} fallback={p.id} editable={editable}
+                      onChange={(val) => {
+                        const nd = [...fd.pdu_system];
+                        nd[idx].id = val;
+                        set({ pdu_system: nd });
+                      }}
+                    />
                   </div>
                 </td>
-                {['ry','yb','br'].map(f => <td key={f} className={td}><CellIn disabled={disabled} value={p.p3?.[f] ?? ''} onChange={(e: any) => { const nd = [...fd.pdu_system]; nd[idx].p3 = { ...nd[idx].p3, [f]: e.target.value }; set({ pdu_system: nd }); }} /></td>)}
-                {['rn','yn','bn'].map(f => <td key={f} className={td}><CellIn disabled={disabled} value={p.p1?.[f] ?? ''} onChange={(e: any) => { const nd = [...fd.pdu_system]; nd[idx].p1 = { ...nd[idx].p1, [f]: e.target.value }; set({ pdu_system: nd }); }} /></td>)}
+                {['ry', 'yb', 'br'].map(f => <td key={f} className={td}><CellIn disabled={disabled} value={p.p3?.[f] ?? ''} onChange={(e: any) => { const nd = [...fd.pdu_system]; nd[idx].p3 = { ...nd[idx].p3, [f]: e.target.value }; set({ pdu_system: nd }); }} /></td>)}
+                {['rn', 'yn', 'bn'].map(f => <td key={f} className={td}><CellIn disabled={disabled} value={p.p1?.[f] ?? ''} onChange={(e: any) => { const nd = [...fd.pdu_system]; nd[idx].p1 = { ...nd[idx].p1, [f]: e.target.value }; set({ pdu_system: nd }); }} /></td>)}
                 <td className="border border-slate-900 bg-slate-50" />
               </tr>
             )
           ))}
           {editable && (
-            <tr className="print:hidden">
-              <td colSpan={8} className="p-1 border border-slate-900 bg-slate-50 space-x-2 flex">
-                <Button size="small" variant="outlined" startIcon={<FuseSvgIcon size={10}>heroicons-outline:plus</FuseSvgIcon>} className="font-black text-[9px] text-indigo-600 flex-1 py-0" onClick={() => { const nd = [...fd.pdu_system, { id: `PDU #${fd.pdu_system.filter((x:any)=>!x.isTotal).length + 1}`, p3: { ry: "", yb: "", br: "" }, p1: { rn: "", yn: "", bn: "" } }]; set({ pdu_system: nd }); }}>Add PDU</Button>
-                 <Button size="small" variant="outlined" startIcon={<FuseSvgIcon size={10}>heroicons-outline:calculator</FuseSvgIcon>} className="font-black text-[9px] text-emerald-600 flex-1 py-0" onClick={() => { const nd = [...fd.pdu_system, { id: "TOTAL CURRENT", neutral: "", total: "", isTotal: true }]; set({ pdu_system: nd }); }}>Add Total</Button>
+            <tr>
+              <td colSpan={8} className="p-2 border border-slate-900 bg-slate-50 space-x-2 flex">
+                <Button
+                  size="small" variant="outlined" startIcon={<FuseSvgIcon size={12}>heroicons-outline:plus</FuseSvgIcon>}
+                  className="font-black text-[9px] text-indigo-600 flex-1 h-8"
+                  onClick={() => {
+                    const nd = [...fd.pdu_system, { id: `PDU #${fd.pdu_system.filter((x: any) => !x.isTotal).length + 1}`, p3: { ry: "", yb: "", br: "" }, p1: { rn: "", yn: "", bn: "" } }];
+                    set({ pdu_system: nd });
+                  }}
+                >Add PDU</Button>
+                <Button
+                  size="small" variant="outlined" startIcon={<FuseSvgIcon size={12}>heroicons-outline:calculator</FuseSvgIcon>}
+                  className="font-black text-[9px] text-emerald-600 flex-1 h-8"
+                  onClick={() => {
+                    const nd = [...fd.pdu_system, { id: "TOTAL CURRENT", neutral: "", total: "", isTotal: true }];
+                    set({ pdu_system: nd });
+                  }}
+                >Add Total Row</Button>
               </td>
             </tr>
           )}
-          <tr><td colSpan={8} className="border border-slate-900 p-0.5 text-[8px] font-black text-center uppercase tracking-widest"><EText id="pdu_status" fallback="STATUS NORMAL" editable={editable} /></td></tr>
+          <tr>
+            <td colSpan={8} className="border border-slate-900 p-1 text-[9px] font-black text-center uppercase tracking-widest leading-none mt-1">
+              <EText id="pdu_status" fallback="STATUS NORMAL" editable={editable} />
+            </td>
+          </tr>
         </tbody>
       </table>
     </>
   );
 };
 
-const renderBMSSection = (fd: any, set: any, disabled: boolean, editable: boolean, hdr: string) => {
-  const th = "text-[9px] font-black border border-slate-900 text-center bg-slate-100 p-0.5 uppercase";
-  const td = "text-[9px] border border-slate-900 p-0";
-  const tdl = "text-[9px] font-bold border border-slate-900 p-0.5 uppercase";
+const renderBMSSection = (fd: any, set: any, disabled: boolean, editable: boolean) => {
+  const th = "text-[10px] sm:text-[8px] font-black border border-slate-900 text-center bg-slate-100 p-0.5 uppercase";
+  const td = "text-[11px] sm:text-[9px] border border-slate-900 p-0";
+  const tdl = "text-[11px] sm:text-[9px] font-bold border border-slate-900 p-1 uppercase";
   return (
     <>
-      <div className="text-[10px] font-black text-center bg-slate-200 border-b border-slate-900 p-0.5 uppercase text-slate-800">
-        <EText id="hdr_4" fallback={hdr} className="outline-none w-full block uppercase" editable={editable} />
+      <div className="text-[9px] font-black text-center bg-slate-200 border-b border-slate-900 p-0.5 uppercase text-slate-800">
+        <EText id="hdr_4" fallback="BMS Reading" className="outline-none w-full block uppercase" editable={editable} />
       </div>
       <table className="w-full border-collapse text-[8px]">
         <thead>
           <tr>
             <th className={`${th} w-6`} />
             <th className={th}><EText id="bms_th1" fallback="BMS Sensor" editable={editable} /></th>
-            <th className={th}>Temp (°C)</th>
-            <th className={th}>Hum (% RH)</th>
+            <th className={th}><EText id="bms_th2" fallback="Temperature" editable={editable} /></th>
+            <th className={th}><EText id="bms_th3" fallback="Humidity" editable={editable} /></th>
           </tr>
         </thead>
         <tbody>
-          {fd.bms_readings?.map((r: any, idx: number) => (
-            <tr key={idx}>
-              <td className="border border-slate-900 text-center text-[8px] font-black leading-none">{r.num || idx + 1}</td>
+          {(Array.isArray(fd.bms_readings) ? fd.bms_readings : []).map((r: any, idx: number) => (
+            <tr key={idx} className="even:bg-slate-50/50 hover:bg-indigo-50/30 transition-colors">
+              <td className="border border-slate-900 text-center text-[8px] font-black">{r.num || idx + 1}</td>
               <td className={tdl}>
-                <div className="flex items-center gap-0.5">
+                <div className="flex items-center gap-1">
                   {editable && (
-                    <IconButton size="small" className="p-0 text-rose-500 print:hidden" onClick={() => {
+                    <IconButton size="small" className="p-0 text-rose-500" onClick={() => {
                       const nd = fd.bms_readings
                         .filter((_: any, i: number) => i !== idx)
                         .map((r: any, i: number) => ({ ...r, num: i + 1 }));
@@ -517,8 +538,8 @@ const renderBMSSection = (fd: any, set: any, disabled: boolean, editable: boolea
                       <FuseSvgIcon size={10}>heroicons-outline:trash</FuseSvgIcon>
                     </IconButton>
                   )}
-                  <EText 
-                    id={`bms_row_v2_${r.num}`} fallback={r.id} editable={editable} 
+                  <EText
+                    id={`bms_row_v2_${r.num}`} fallback={r.id} editable={editable}
                     onChange={(val) => {
                       const nd = [...fd.bms_readings];
                       const targetIdx = nd.findIndex(x => x.num === r.num);
@@ -526,7 +547,7 @@ const renderBMSSection = (fd: any, set: any, disabled: boolean, editable: boolea
                         nd[targetIdx].id = val;
                         set({ bms_readings: nd });
                       }
-                    }} 
+                    }}
                   />
                 </div>
               </td>
@@ -535,17 +556,19 @@ const renderBMSSection = (fd: any, set: any, disabled: boolean, editable: boolea
             </tr>
           ))}
           {editable && (
-            <tr className="print:hidden">
-              <td colSpan={4} className="p-0.5 border border-slate-900 bg-slate-50">
-                <Button 
-                  size="small" fullWidth startIcon={<FuseSvgIcon size={10}>heroicons-outline:plus</FuseSvgIcon>}
+            <tr>
+              <td colSpan={4} className="p-1 border border-slate-900 bg-slate-50">
+                <Button
+                  size="small" fullWidth startIcon={<FuseSvgIcon size={12}>heroicons-outline:plus</FuseSvgIcon>}
                   className="font-black text-[8px] text-indigo-600 border border-dashed border-indigo-200 py-0"
                   onClick={() => {
                     const nextNum = fd.bms_readings.length + 1;
                     const nd = [...fd.bms_readings, { num: nextNum, id: `New Zone #${nextNum}`, temp: "", hum: "" }];
                     set({ bms_readings: nd });
                   }}
-                >Add Sensor</Button>
+                >
+                  Add Sensor
+                </Button>
               </td>
             </tr>
           )}
@@ -555,401 +578,514 @@ const renderBMSSection = (fd: any, set: any, disabled: boolean, editable: boolea
   );
 };
 
-const renderHSSDSection = (fd: any, set: any, disabled: boolean, editable: boolean, hdr: string) => {
-  const th = "text-[9px] font-black border border-slate-900 text-center bg-slate-100 p-0.5 uppercase";
-  const tdl = "text-[10px] font-bold border border-slate-900 p-1 uppercase text-slate-700 leading-tight";
+const renderHSSDSection = (fd: any, set: any, disabled: boolean, editable: boolean) => {
+  const th = "text-[12px] font-black border border-slate-900 text-center bg-slate-100 p-1 uppercase";
+  const tdl = "text-[13px] font-bold border border-slate-900 p-2 uppercase text-slate-700";
   return (
     <>
-      <div className="text-[11px] font-black text-center bg-slate-200 border-y border-slate-900 p-1 uppercase text-slate-800">
-        <EText id="hdr_5" fallback={hdr} className="outline-none w-full block" editable={editable} />
+      <div className="text-[13px] font-black text-center bg-slate-200 border-y border-slate-900 p-1.5 uppercase text-slate-800">
+        <EText id="hdr_5" fallback="5. HSSD SYSTEM VESDA (RACK ROOM)" className="outline-none w-full block" editable={editable} />
       </div>
-      <div className="border-b border-slate-900 p-1 flex justify-between items-center bg-slate-50">
-        <span className="text-[10px] font-black uppercase text-slate-600 tracking-wider">Main Controller</span>
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black uppercase text-slate-500">Operation Status :</span>
-          <Chip size="small" label={fd.hssd_status?.operation ?? 'NORMAL'} color={(fd.hssd_status?.operation ?? 'NORMAL') === 'NORMAL' ? 'success' : 'error'} sx={{ height: 18, fontSize: 9, fontWeight: 900 }} />
+      <div className="border-b border-slate-900 p-2 flex justify-between items-center bg-slate-50">
+        <span className="text-[12px] font-black uppercase text-slate-600 tracking-wider">
+          <EText id="hssd_lbl1" fallback="Main Controller" editable={editable} />
+        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-[12px] font-black uppercase text-slate-500">
+            <EText id="hssd_lbl2" fallback="Operation Status :" editable={editable} />
+          </span>
+          <Chip
+            size="small"
+            label={fd.hssd_status?.operation ?? 'NORMAL'}
+            color={(fd.hssd_status?.operation ?? 'NORMAL') === 'NORMAL' ? 'success' : 'error'}
+            sx={{ height: 24, fontSize: 11, fontWeight: 900 }}
+            onClick={() => !disabled && set({ hssd_status: { ...fd.hssd_status, operation: fd.hssd_status.operation === 'NORMAL' ? 'ALARM' : 'NORMAL' } })}
+          />
         </div>
       </div>
-      <table className="w-full border-collapse text-[9px]">
+      <table className="w-full border-collapse text-[11px]">
         <thead>
           <tr>
-            <th className={th}>DETECTORS</th>
-            <th className={th}>Fire</th>
-            <th className={th}>Fault</th>
-            <th className={th}>OK</th>
+            <th className={th}><EText id="hssd_th1" fallback="DETECTORS" editable={editable} /></th>
+            <th className={th}><EText id="hssd_th2" fallback="Fire" editable={editable} /></th>
+            <th className={th}><EText id="hssd_th3" fallback="Fault" editable={editable} /></th>
+            <th className={th}><EText id="hssd_th4" fallback="OK" editable={editable} /></th>
           </tr>
         </thead>
         <tbody>
-          {fd.hssd_status?.detectors?.map((d: any, idx: number) => (
-            <tr key={d.id}>
+          {(Array.isArray(fd.hssd_status?.detectors) ? fd.hssd_status.detectors : []).map((d: any, idx: number) => (
+            <tr key={d.id} className="even:bg-slate-50/50 hover:bg-indigo-50/30 transition-colors">
               <td className={tdl}>
-                 <div className="flex items-center gap-0.5">
+                <div className="flex items-center gap-1">
                   {editable && (
-                    <IconButton size="small" className="p-0 text-rose-500 print:hidden" onClick={() => {
-                      const nd = { ...fd.hssd_status, detectors: fd.hssd_status.detectors.filter((_: any, i: number) => i !== idx) };
+                    <IconButton size="small" className="p-0 text-rose-500" onClick={() => {
+                      const nd = {
+                        ...fd.hssd_status, detectors: fd.hssd_status.detectors
+                          .filter((_: any, i: number) => i !== idx)
+                          .map((d: any, i: number) => ({ ...d, id: `Detector #${i + 1}` }))
+                      };
                       set({ hssd_status: nd });
                     }}>
                       <FuseSvgIcon size={12}>heroicons-outline:trash</FuseSvgIcon>
                     </IconButton>
                   )}
-                  <EText id={`hssd_det_${idx}`} fallback={d.id} editable={editable} />
+                  <EText
+                    id={`hssd_det_${idx}`} fallback={d.id === `det${idx + 1}` ? `Detector #${idx + 1}` : d.id} editable={editable}
+                    onChange={(val) => {
+                      const nd = { ...fd.hssd_status, detectors: fd.hssd_status.detectors.map((x: any, i: number) => i === idx ? { ...x, id: val } : x) };
+                      set({ hssd_status: nd });
+                    }}
+                  />
                 </div>
               </td>
-              {(['fire','fault','ok'] as const).map(fld => (
+              {(['fire', 'fault', 'ok'] as const).map(fld => (
                 <td key={fld} className="border border-slate-900 text-center p-0">
-                  <div className="print:block hidden">
-                     <div className={`w-3 h-3 mx-auto border border-black flex items-center justify-center ${d[fld] ? 'bg-black text-white' : ''}`}>
-                       {d[fld] ? 'v' : ' '}
-                     </div>
-                  </div>
-                  <Checkbox size="small" className="print:hidden p-0" checked={!!d[fld]} disabled={disabled} onChange={() => { const nd = { ...fd.hssd_status, detectors: fd.hssd_status.detectors.map((x: any, i: number) => i === idx ? { ...x, [fld]: !x[fld] } : x) }; set({ hssd_status: nd }); }} />
+                  <Checkbox size="small" checked={!!d[fld]} disabled={disabled}
+                    onChange={() => { const nd = { ...fd.hssd_status, detectors: fd.hssd_status.detectors.map((x: any, i: number) => i === idx ? { ...x, [fld]: !x[fld] } : x) }; set({ hssd_status: nd }); }}
+                    sx={{ p: 0.5, '& .MuiSvgIcon-root': { fontSize: 20 } }} />
                 </td>
               ))}
             </tr>
           ))}
+          {editable && (
+            <tr>
+              <td colSpan={4} className="p-2 border border-slate-900 bg-slate-50">
+                <Button
+                  size="small" fullWidth startIcon={<FuseSvgIcon size={14}>heroicons-outline:plus</FuseSvgIcon>}
+                  className="font-black text-[10px] text-indigo-600 border border-dashed border-indigo-200"
+                  onClick={() => {
+                    const nd = { ...fd.hssd_status, detectors: [...fd.hssd_status.detectors, { id: `Detector #${fd.hssd_status.detectors.length + 1}`, fire: false, fault: false, ok: true }] };
+                    set({ hssd_status: nd });
+                  }}
+                >Add Detector</Button>
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </>
   );
 };
 
-const renderLeakSection = (fd: any, set: any, disabled: boolean, editable: boolean, hdr: string) => {
+const renderLeakSection = (fd: any, set: any, disabled: boolean, editable: boolean) => {
   return (
     <>
-      <div className="text-[11px] font-black text-center bg-slate-200 border-y border-slate-900 p-1 uppercase text-slate-800">
-        <EText id="hdr_6" fallback={hdr} className="outline-none w-full block" editable={editable} />
+      <div className="text-[13px] font-black text-center bg-slate-200 border-y border-slate-900 p-1.5 uppercase text-slate-800">
+        <EText id="hdr_6" fallback="6. LEAK DETECTION SYSTEM" className="outline-none w-full block" editable={editable} />
       </div>
-      <div className="p-1 flex justify-between items-center bg-slate-50/10">
-        <span className="text-[10px] font-black uppercase text-slate-600">Main Controller :</span>
+      <div className="p-1 border-b border-slate-900 flex justify-between items-center even:bg-slate-50/50 hover:bg-indigo-50/30 transition-colors">
+        <span className="text-[13px] font-black uppercase text-slate-700">
+          <EText id="leak_lbl1" fallback="Main Controller :" editable={editable} />
+        </span>
         <CellIn disabled={disabled} value={fd.leak_detection?.controller ?? ''} onChange={(e: any) => set({ leak_detection: { ...fd.leak_detection, controller: e.target.value } })} />
       </div>
     </>
   );
 };
 
-const renderEMSSection = (fd: any, set: any, disabled: boolean, editable: boolean, hdr: string) => {
-  const tdl = "text-[10px] font-bold border border-slate-900 p-1 uppercase text-slate-700 leading-tight";
+const renderEMSSection = (fd: any, set: any, disabled: boolean, editable: boolean) => {
+  const tdl = "text-[13px] font-bold border border-slate-900 p-2 uppercase text-slate-700";
   return (
     <>
-      <div className="text-[11px] font-black text-center bg-slate-200 border-y border-slate-900 p-1 uppercase text-slate-800">
-        <EText id="hdr_7" fallback={hdr} className="outline-none w-full block" editable={editable} />
+      <div className="text-[13px] font-black text-center bg-slate-200 border-y border-slate-900 p-1.5 uppercase text-slate-800">
+        <EText id="hdr_7" fallback="7. ENVIRONMENTAL MONITORING SYSTEM (EMS)" className="outline-none w-full block" editable={editable} />
       </div>
-      <table className="w-full border-collapse text-[9px]">
+      <table className="w-full border-collapse text-[11px]">
         <tbody>
           {(Array.isArray(fd.ems_control?.items) ? fd.ems_control.items : []).map((item: any, idx: number) => (
-            <tr key={item.id}>
+            <tr key={item.id} className="even:bg-slate-50/50 hover:bg-indigo-50/30 transition-colors">
               <td className={tdl}>
-                <div className="flex items-center gap-0.5">
+                <div className="flex items-center gap-1">
                   {editable && (
-                    <IconButton size="small" className="p-0 text-rose-500 print:hidden" onClick={() => {
-                      const nd = { ...fd.ems_control, items: (Array.isArray(fd.ems_control?.items) ? fd.ems_control.items : [])
-                        .filter((_: any, i: number) => i !== idx)
-                        .map((item: any, i: number) => ({ ...item, id: `Item #${i + 1}` }))
+                    <IconButton size="small" className="p-0 text-rose-500" onClick={() => {
+                      const nd = {
+                        ...fd.ems_control, items: fd.ems_control.items
+                          .filter((_: any, i: number) => i !== idx)
+                          .map((item: any, i: number) => ({ ...item, id: `Item #${i + 1}` }))
                       };
                       set({ ems_control: nd });
                     }}>
                       <FuseSvgIcon size={12}>heroicons-outline:trash</FuseSvgIcon>
                     </IconButton>
                   )}
-                  <EText 
-                    id={`ems_item_${idx}`} fallback={item.id} editable={editable} 
+                  <EText
+                    id={`ems_item_${idx}`} fallback={item.id} editable={editable}
                     onChange={(val) => {
-                      const nd = { ...fd.ems_control, items: (Array.isArray(fd.ems_control?.items) ? fd.ems_control.items : []).map((x:any, i:number)=>i===idx ? {...x, id: val} : x) };
+                      const nd = { ...fd.ems_control, items: fd.ems_control.items.map((x: any, i: number) => i === idx ? { ...x, id: val } : x) };
                       set({ ems_control: nd });
-                    }} 
+                    }}
                   />
                 </div>
               </td>
-              <td className="border border-slate-900 text-center p-0.5">
-                 <OnOff value={item.status} disabled={disabled} onChange={(v: string) => { 
-                   const nd = { ...fd.ems_control, items: (Array.isArray(fd.ems_control?.items) ? fd.ems_control.items : []).map((x: any, i: number) => i === idx ? { ...x, status: v } : x) }; 
-                   set({ ems_control: nd }); 
-                 }} />
+              <td className="border border-slate-900 text-center p-2">
+                <button
+                  disabled={disabled}
+                  onClick={() => {
+                    const nd = { ...fd.ems_control, items: fd.ems_control.items.map((x: any, i: number) => i === idx ? { ...x, status: x.status === 'OK' ? 'ALARM' : 'OK' } : x) };
+                    set({ ems_control: nd });
+                  }}
+                  className={`px-4 py-1 text-[11px] font-black rounded-lg border transition-all ${item.status === 'OK' ? 'bg-emerald-50 border-emerald-400 text-emerald-800 shadow-sm' : 'bg-red-50 border-red-400 text-red-700 shadow-sm animate-pulse'
+                    }`}
+                >
+                  {item.status === 'OK' ? '✓ NORMAL' : '⚠ ALARM'}
+                </button>
               </td>
             </tr>
           ))}
+          {editable && (
+            <tr>
+              <td colSpan={2} className="p-2 border border-slate-900 bg-slate-50">
+                <Button
+                  size="small" fullWidth startIcon={<FuseSvgIcon size={14}>heroicons-outline:plus</FuseSvgIcon>}
+                  className="font-black text-[10px] text-indigo-600 border border-dashed border-indigo-200"
+                  onClick={() => {
+                    const nd = { ...fd.ems_control, items: [...fd.ems_control.items, { id: `Item #${fd.ems_control.items.length + 1}`, status: "OK" }] };
+                    set({ ems_control: nd });
+                  }}
+                >Add EMS Item</Button>
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </>
   );
 };
-const renderUPSSBSection = (fd: any, set: any, disabled: boolean, editable: boolean, hdr: string) => {
-  const th = "text-[9px] font-black border border-slate-900 text-center bg-slate-100 p-0.5 uppercase";
-  const td = "text-[9px] border border-slate-900 p-0";
-  const tdl = "text-[10px] font-bold border border-slate-900 p-1 uppercase text-slate-700 leading-tight";
+
+const renderUPSSBSection = (fd: any, set: any, disabled: boolean, editable: boolean) => {
+  const th = "text-[12px] font-black border border-slate-900 text-center bg-slate-100 p-1 uppercase";
+  const td = "text-[13px] border border-slate-900 p-0";
+  const tdl = "text-[13px] font-bold border border-slate-900 p-2 uppercase text-slate-700";
   return (
     <>
-      <div className="text-[11px] font-black text-center bg-slate-200 border-b border-slate-900 p-1 uppercase text-slate-800">
-        <EText id="hdr_8" fallback={hdr} className="outline-none w-full block" editable={editable} />
+      <div className="text-[13px] font-black text-center bg-slate-200 border-y border-slate-900 p-1.5 uppercase text-slate-800">
+        <EText id="hdr_8" fallback="8. 1250A TPN UPS SWITCH BOARD" className="outline-none w-full block" editable={editable} />
       </div>
-      <table className="w-full border-collapse text-[9px]">
+      <div className="border border-slate-900 border-t-0 bg-slate-50/50">
+        {[
+          { label: 'Main ACB Status', key: 'main_acb', id: 'upssb_lbl1' },
+          { label: 'Genset ACB Status', key: 'genset_acb', id: 'upssb_lbl2' },
+          { label: 'Essential AVR ACB Status', key: 'ess_avr_acb', id: 'upssb_lbl3' },
+        ].map((row, idx) => (
+          <div key={row.key} className={`flex justify-between items-center px-4 py-2 border-b border-slate-200 ${idx % 2 === 0 ? 'even:bg-slate-50/50' : ''} hover:bg-indigo-50/30 transition-colors`}>
+            <span className="text-[12px] font-black uppercase text-slate-600">
+              <EText id={row.id} fallback={row.label} editable={editable} /> :
+            </span>
+            <div className="flex gap-2">
+              <OnOff value={fd.ups_switchboard?.[row.key]} disabled={disabled} onChange={(v: string) => set({ ups_switchboard: { ...fd.ups_switchboard, [row.key]: v } })} />
+            </div>
+          </div>
+        ))}
+      </div>
+      <table className="w-full border-collapse text-[11px]">
         <thead>
           <tr>
-            <th className={th} rowSpan={2}>ITEM</th>
-            <th className={th} colSpan={2}>STATUS</th>
-            <th className={th} colSpan={2}>MEASUREMENT</th>
+            <th className={th} colSpan={2}><EText id="upssb_th1" fallback="Voltage (415V ±10%)" editable={editable} /></th>
+            <th className={th} colSpan={2}><EText id="upssb_th2" fallback="Current (Amp)" editable={editable} /></th>
           </tr>
+        </thead>
+        <tbody>
+          {[['R-Y', 'ry', 'R', 'r'], ['Y-B', 'yb', 'Y', 'y'], ['B-R', 'br', 'B', 'b'], ['R-N', 'rn', 'N', 'n'], ['Y-N', 'yn', '-', ''], ['B-N', 'bn', '-', '']].map(([vlbl, vfld, clbl, cfld], i) => (
+            <tr key={vfld} className="even:bg-slate-50/50 hover:bg-indigo-50/30 transition-colors">
+              <td className={`${tdl} w-[20%]`}>{vlbl}</td>
+              <td className={td}><CellIn disabled={disabled} value={fd.ups_switchboard?.v?.[vfld] ?? ''} onChange={(e: any) => set({ ups_switchboard: { ...fd.ups_switchboard, v: { ...fd.ups_switchboard?.v, [vfld]: e.target.value } } })} /></td>
+              <td className={`${tdl} w-[20%]`}>{clbl}</td>
+              <td className={td}>
+                {cfld ? (
+                  <CellIn disabled={disabled} value={fd.ups_switchboard?.cur?.[cfld] ?? ''} onChange={(e: any) => set({ ups_switchboard: { ...fd.ups_switchboard, cur: { ...fd.ups_switchboard?.cur, [cfld]: e.target.value } } })} />
+                ) : null}
+              </td>
+            </tr>
+          ))}
+          <tr className="even:bg-slate-50/50 hover:bg-indigo-50/30 transition-colors">
+            <td className={tdl} colSpan={2}><EText id="upssb_lbl4" fallback="Load Percentage (%)" editable={editable} /></td>
+            <td className={td} colSpan={2}><CellIn disabled={disabled} value={fd.ups_switchboard?.load ?? ''} onChange={(e: any) => set({ ups_switchboard: { ...fd.ups_switchboard, load: e.target.value } })} /></td>
+          </tr>
+        </tbody>
+      </table>
+    </>
+  );
+};
+
+const renderACSSection = (fd: any, set: any, disabled: boolean, editable: boolean) => {
+  const th = "text-[12px] font-black border border-slate-900 text-center bg-slate-100 p-1 uppercase";
+  const td = "text-[13px] border border-slate-900 p-0";
+  const tdl = "text-[13px] font-bold border border-slate-900 p-2 uppercase text-slate-700";
+  return (
+    <>
+      <div className="text-[13px] font-black text-center bg-slate-200 border-y border-slate-900 p-1.5 uppercase text-slate-800">
+        <EText id="hdr_9" fallback="9. 600A TPN AIR-COND SWITCH BOARD" className="outline-none w-full block" editable={editable} />
+      </div>
+      <div className="p-3 border border-slate-900 border-t-0 bg-slate-50/50 flex justify-between items-center hover:bg-indigo-50/30 transition-colors">
+        <span className="text-[12px] font-black uppercase text-slate-600">
+          <EText id="acs_lbl1" fallback="Main Breaker Status :" editable={editable} />
+        </span>
+        <OnOff value={fd.aircond_switchboard?.main_breaker} disabled={disabled} onChange={(v: string) => set({ aircond_switchboard: { ...fd.aircond_switchboard, main_breaker: v } })} />
+      </div>
+      <table className="w-full border-collapse text-[11px]">
+        <thead>
           <tr>
-            <th className={th}>ON</th>
-            <th className={th}>OFF</th>
-            <th className={th}>R-Y</th>
-            <th className={th}>Amp</th>
+            <th className={th} colSpan={2}><EText id="acs_th1" fallback="Voltage (415V ±10%)" editable={editable} /></th>
+            <th className={th} colSpan={2}><EText id="acs_th2" fallback="Current (Amp)" editable={editable} /></th>
+          </tr>
+        </thead>
+        <tbody>
+          {[['R-Y', 'ry', 'R', 'r'], ['Y-B', 'yb', 'Y', 'y'], ['B-R', 'br', 'B', 'b'], ['R-N', 'rn', 'N', 'n'], ['Y-N', 'yn', '-', ''], ['B-N', 'bn', '-', '']].map(([vlbl, vfld, clbl, cfld], i) => (
+            <tr key={vfld} className="even:bg-slate-50/50 hover:bg-indigo-50/30 transition-colors">
+              <td className={`${tdl} w-[20%]`}>{vlbl}</td>
+              <td className={td}><CellIn disabled={disabled} value={fd.aircond_switchboard?.v?.[vfld] ?? ''} onChange={(e: any) => set({ aircond_switchboard: { ...fd.aircond_switchboard, v: { ...fd.aircond_switchboard?.v, [vfld]: e.target.value } } })} /></td>
+              <td className={`${tdl} w-[20%]`}>{clbl}</td>
+              <td className={td}>
+                {cfld ? (
+                  <CellIn disabled={disabled} value={fd.aircond_switchboard?.cur?.[cfld] ?? ''} onChange={(e: any) => set({ aircond_switchboard: { ...fd.aircond_switchboard, cur: { ...fd.aircond_switchboard?.cur, [cfld]: e.target.value } } })} />
+                ) : null}
+              </td>
+            </tr>
+          ))}
+          <tr className="even:bg-slate-50/50 hover:bg-indigo-50/30 transition-colors">
+            <td className={tdl} colSpan={2}><EText id="acs_lbl2" fallback="Load Percentage (%)" editable={editable} /></td>
+            <td className={td} colSpan={2}><CellIn disabled={disabled} value={fd.aircond_switchboard?.load ?? ''} onChange={(e: any) => set({ aircond_switchboard: { ...fd.aircond_switchboard, load: e.target.value } })} /></td>
+          </tr>
+        </tbody>
+      </table>
+    </>
+  );
+};
+
+const renderGensetSection = (fd: any, set: any, disabled: boolean, editable: boolean) => {
+  const th = "text-[12px] font-black border border-slate-900 text-center bg-slate-100 p-1 uppercase";
+  const td = "text-[13px] border border-slate-900 p-0";
+  const tdl = "text-[13px] font-bold border border-slate-900 p-2 uppercase text-slate-700";
+  return (
+    <>
+      <div className="text-[13px] font-black text-center bg-slate-200 border-y border-slate-900 p-1.5 uppercase text-slate-800">
+        <EText id="hdr_10" fallback="10. GENSET CUMMINS POWER GENERATORS (900KVA)" className="outline-none w-full block" editable={editable} />
+      </div>
+      <table className="w-full border-collapse text-[11px]">
+        <thead>
+          <tr>
+            <th className={th}><EText id="gen_th1" fallback="Descriptions" editable={editable} /></th>
+            {(Array.isArray(fd.genset) ? fd.genset : []).map((g: any, gi: number) => (
+              <th key={gi} className={th}>
+                <div className="flex flex-col items-center gap-1">
+                  {editable && (
+                    <IconButton size="small" className="p-0 text-rose-500" onClick={() => {
+                      const nd = fd.genset
+                        .filter((_: any, i: number) => i !== gi)
+                        .map((g: any, i: number) => ({ ...g, id: `Genset ${i + 1}` }));
+                      set({ genset: nd });
+                    }}>
+                      <FuseSvgIcon size={12}>heroicons-outline:trash</FuseSvgIcon>
+                    </IconButton>
+                  )}
+                  <EText
+                    id={`gen_row_${gi}`} fallback={g.id} editable={editable}
+                    onChange={(val) => {
+                      const nd = [...fd.genset];
+                      nd[gi].id = val;
+                      set({ genset: nd });
+                    }}
+                  />
+                </div>
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
           {[
-            { lbl: 'Main ACB Status', k1: 'main_acb', k2: 'main_v', k3: 'main_a', id: 'upssb_r1' },
-            { lbl: 'Genset ACB Status', k1: 'genset_acb', k2: 'genset_v', k3: 'genset_a', id: 'upssb_r2' },
-            { lbl: 'Essential AVR ACB', k1: 'avr_acb', k2: 'avr_v', k3: 'avr_a', id: 'upssb_r3' }
+            { label: 'DC Switch Status', key: 'dc', opts: ['ON', 'OFF'], id: 'gen_lbl1' },
+            { label: 'Mode Switch Status', key: 'mode', opts: ['AUTO', 'OFF', 'RUN'], id: 'gen_lbl2' },
+            { label: 'Charger Switch Status', key: 'charger', opts: ['ON', 'OFF'], id: 'gen_lbl3' },
+            { label: 'Boost / Float Switch Status', key: 'float_switch', opts: ['FLOAT', 'BOOST'], id: 'gen_lbl4' },
+            { label: 'Fuel Level (Litre)%', key: 'fuel', input: true, id: 'gen_lbl5' },
+            { label: 'ACB Status (ON/OFF/TRIP)', key: 'acb', opts: ['ON', 'OFF', 'TRIP'], id: 'gen_lbl6' },
           ].map(row => (
-            <tr key={row.k1}>
-              <td className={tdl}><EText id={row.id} fallback={row.lbl} editable={editable} /></td>
-              <td className="border border-slate-900 text-center p-0" colSpan={2}>
-                 <OnOff value={fd.ups_sb?.[row.k1]} disabled={disabled} onChange={(v: string) => set({ ups_sb: { ...fd.ups_sb, [row.k1]: v } })} />
-              </td>
-              <td className={td}><CellIn disabled={disabled} value={fd.ups_sb?.[row.k2] ?? ''} onChange={(e: any) => set({ ups_sb: { ...fd.ups_sb, [row.k2]: e.target.value } })} /></td>
-              <td className={td}><CellIn disabled={disabled} value={fd.ups_sb?.[row.k3] ?? ''} onChange={(e: any) => set({ ups_sb: { ...fd.ups_sb, [row.k3]: e.target.value } })} /></td>
-            </tr>
-          ))}
-          <tr>
-            <td className={tdl}><EText id="upssb_note" fallback="Grid Measure:" editable={editable} /></td>
-            <td className={td} colSpan={2}><CellIn disabled={disabled} value={fd.ups_sb?.v_ry ?? ''} placeholder="R-Y" onChange={(e: any) => set({ ups_sb: { ...fd.ups_sb, v_ry: e.target.value } })} /></td>
-            <td className={td} colSpan={2}><CellIn disabled={disabled} value={fd.ups_sb?.v_yb ?? ''} placeholder="Y-B" onChange={(e: any) => set({ ups_sb: { ...fd.ups_sb, v_yb: e.target.value } })} /></td>
-          </tr>
-        </tbody>
-      </table>
-    </>
-  );
-};
-
-const renderACSSection = (fd: any, set: any, disabled: boolean, editable: boolean, hdr: string) => {
-  const th = "text-[9px] font-black border border-slate-900 text-center bg-slate-100 p-0.5 uppercase";
-  const td = "text-[9px] border border-slate-900 p-0";
-  const tdl = "text-[10px] font-bold border border-slate-900 p-1 uppercase text-slate-700 leading-tight";
-  return (
-    <>
-      <div className="text-[11px] font-black text-center bg-slate-200 border-y border-slate-900 p-1 uppercase text-slate-800">
-        <EText id="hdr_9" fallback={hdr} className="outline-none w-full block" editable={editable} />
-      </div>
-      <table className="w-full border-collapse text-[9px]">
-        <tbody>
-          <tr>
-            <td className={tdl}><EText id="acs_r1" fallback="Main Breaker Status" editable={editable} /></td>
-            <td className="border border-slate-900 text-center p-0">
-               <OnOff value={fd.ac_sb?.main_breaker} disabled={disabled} onChange={(v: string) => set({ ac_sb: { ...fd.ac_sb, main_breaker: v } })} />
-            </td>
-            <th className={th}>Voltage (415 ± 10%)</th>
-            <td className={td}><CellIn disabled={disabled} value={fd.ac_sb?.voltage ?? ''} onChange={(e: any) => set({ ac_sb: { ...fd.ac_sb, voltage: e.target.value } })} /></td>
-          </tr>
-        </tbody>
-      </table>
-    </>
-  );
-};
-
-const renderGensetSection = (fd: any, set: any, disabled: boolean, editable: boolean, hdr: string) => {
-  const th = "text-[9px] font-black border border-slate-900 text-center bg-slate-100 p-0.5 uppercase";
-  const td = "text-[9px] border border-slate-900 p-0";
-  const tdl = "text-[10px] font-bold border border-slate-900 p-1 uppercase text-slate-700 leading-tight";
-  return (
-    <>
-      <div className="text-[10px] font-black text-center bg-slate-200 border-y border-slate-900 p-0.5 uppercase text-slate-800">
-        <EText id="hdr_9_v2" fallback={hdr} editable={editable} />
-      </div>
-      <table className="w-full border-collapse text-[9px]">
-        <thead>
-          <tr>
-            <th className={th}>Descriptions</th>
-            <th className={th}>GEN #1</th>
-            <th className={th}>GEN #2</th>
-          </tr>
-        </thead>
-        <tbody>
-          {[
-            { lbl: 'ACB Status', k1: 'acb1', k2: 'acb2', id: 'gen_r1' },
-            { lbl: 'Batt Voltage', k1: 'v1', k2: 'v2', id: 'gen_r2' },
-            { lbl: 'Input (Amp)', k1: 'a1', k2: 'a2', id: 'gen_r3' }
-          ].map(row => (
-            <tr key={row.k1}>
-              <td className={tdl}><EText id={row.id} fallback={row.lbl} editable={editable} /></td>
-              <td className="border border-slate-900 text-center p-0">
-                {row.k1.startsWith('acb') 
-                  ? <OnOff value={fd.genset?.[row.k1]} disabled={disabled} onChange={(v: string) => set({ genset: { ...fd.genset, [row.k1]: v } })} />
-                  : <CellIn disabled={disabled} value={fd.genset?.[row.k1] ?? ''} onChange={(e: any) => set({ genset: { ...fd.genset, [row.k1]: e.target.value } })} />
-                }
-              </td>
-              <td className="border border-slate-900 text-center p-0">
-                {row.k2.startsWith('acb')
-                  ? <OnOff value={fd.genset?.[row.k2]} disabled={disabled} onChange={(v: string) => set({ genset: { ...fd.genset, [row.k2]: v } })} />
-                  : <CellIn disabled={disabled} value={fd.genset?.[row.k2] ?? ''} onChange={(e: any) => set({ genset: { ...fd.genset, [row.k2]: e.target.value } })} />
-                }
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </>
-  );
-};
-
-const renderFireAlarmSection = (fd: any, set: any, disabled: boolean, editable: boolean, hdr: string) => {
-  const th = "text-[9px] font-black border border-slate-900 text-center bg-slate-100 p-0.5 uppercase";
-  const tdl = "text-[10px] font-bold border border-slate-900 p-1 uppercase text-slate-700 leading-tight";
-  const panels = Array.isArray(fd.fire_alarm?.panels) && fd.fire_alarm.panels.length > 0 ? fd.fire_alarm.panels : DEFAULT_SECTIONS().fire_alarm.panels;
-
-  return (
-    <>
-      <div className="text-[11px] font-black text-center bg-slate-200 border-b border-slate-900 p-1 uppercase text-slate-800">
-        <EText id="hdr_11" fallback={hdr} className="outline-none w-full block" editable={editable} />
-      </div>
-      <table className="w-full border-collapse text-[9px]">
-        <thead>
-          <tr>
-            <th className={th}>Panel Location</th>
-            <th className={th}>Bell ISO</th>
-            <th className={th}>Buzz ISO</th>
-            <th className={th}>FAP ISO</th>
-          </tr>
-        </thead>
-        <tbody>
-          {panels.map((p: any, idx: number) => (
-            <tr key={idx}>
-              <td className={tdl}><EText id={`fap_loc_${idx}`} fallback={p.id} editable={editable} /></td>
-              {(['bell','buzzer','fap'] as const).map(fld => (
-                <td key={fld} className="border border-slate-900 text-center p-0">
-                  <OnOff value={p[fld]} disabled={disabled} onChange={(v: string) => { 
-                    const nd = { ...fd.fire_alarm, panels: panels.map((x: any, i: number) => i === idx ? { ...x, [fld]: v } : x) }; 
-                    set({ fire_alarm: nd }); 
-                  }} />
+            <tr key={row.key} className="even:bg-slate-50/50 hover:bg-indigo-50/30 transition-colors">
+              <td className={tdl}><EText id={row.id} fallback={row.label} editable={editable} /></td>
+              {(Array.isArray(fd.genset) ? fd.genset : []).map((g: any, gi: number) => (
+                <td key={gi} className={`${td} text-center p-1`}>
+                  {row.input
+                    ? <CellIn disabled={disabled} value={g[row.key] ?? ''} onChange={(e: any) => { const nd = [...fd.genset]; nd[gi][row.key] = e.target.value; set({ genset: nd }); }} />
+                    : <Select size="small" variant="standard" disabled={disabled} value={g[row.key] ?? row.opts![0]} onChange={(e: any) => { const nd = [...fd.genset]; nd[gi][row.key] = e.target.value; set({ genset: nd }); }} sx={{ fontSize: 13, '.MuiSelect-select': { py: 0.5 } }}>
+                      {row.opts!.map(o => <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>{o}</MenuItem>)}
+                    </Select>
+                  }
                 </td>
               ))}
             </tr>
           ))}
+          {editable && (
+            <tr>
+              <td colSpan={(Array.isArray(fd.genset) ? fd.genset.length : 0) + 1} className="p-2 border border-slate-900 bg-slate-50">
+                <Button
+                  size="small" fullWidth startIcon={<FuseSvgIcon size={14}>heroicons-outline:plus</FuseSvgIcon>}
+                  className="font-black text-[10px] text-indigo-600 border border-dashed border-indigo-200"
+                  onClick={() => {
+                    const nd = [...fd.genset, { id: `Genset ${fd.genset.length + 1}`, dc: "ON", mode: "AUTO", charger: "ON", float_switch: "FLOAT", fuel: "", acb: "OFF" }];
+                    set({ genset: nd });
+                  }}
+                >Add Genset Unit</Button>
+              </td>
+            </tr>
+          )}
+          <tr>
+            <td colSpan={(Array.isArray(fd.genset) ? fd.genset.length : 0) + 1} className="border border-slate-900 p-4 text-center bg-slate-50 text-slate-700 italic leading-tight">
+              <EText id="gen_note" fallback="NOTES: ON DUTY (BLACKOUT) FOR GENSET 1 | GENSET 2 EMERGENCY STOP" bigger editable={editable} />
+            </td>
+          </tr>
         </tbody>
       </table>
     </>
   );
 };
 
-const renderFCUSection = (fd: any, set: any, disabled: boolean, editable: boolean, hdr: string) => {
-  const fcuList = Array.isArray(fd.fcu_status) && fd.fcu_status.length > 0 ? fd.fcu_status : DEFAULT_SECTIONS().fcu_status;
-  
+const renderFireAlarmSection = (fd: any, set: any, disabled: boolean, editable: boolean) => {
+  const td = "text-[13px] border border-slate-900 p-0";
+  const tdl = "text-[13px] font-bold border border-slate-900 p-2 uppercase text-slate-700";
   return (
     <>
-      <div className="text-[11px] font-black text-center bg-slate-200 border-y border-slate-900 p-1 uppercase text-slate-800">
-        <EText id="hdr_12" fallback={hdr} className="outline-none w-full block" editable={editable} />
+      <div className="text-[13px] font-black text-center bg-slate-200 border-b border-slate-900 p-1.5 uppercase text-slate-800">
+        <EText id="hdr_11" fallback="11. FIRE ALARM SYSTEM PANEL (FAP)" className="outline-none w-full block" editable={editable} />
       </div>
-      <div className="flex flex-col gap-0 border border-slate-900 border-t-0 divide-y divide-slate-400 bg-slate-50/50">
-        {fcuList.map((f: any, idx: number) => (
-          <div key={idx} className="flex flex-col p-1.5">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] font-black uppercase text-slate-700">{f.id}</span>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1">
-                  <span className="text-[8px] font-bold text-slate-500">UNIT:</span>
-                  <OnOff value={f.status} disabled={disabled} onChange={(v: string) => { 
-                      const nd = [...fcuList];
-                      nd[idx] = { ...nd[idx], status: v };
-                      set({ fcu_status: nd }); 
-                  }} />
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-[8px] font-bold text-slate-500">COMP:</span>
-                  <OnOff value={f.comp || "OFF"} disabled={disabled} onChange={(v: string) => { 
-                      const nd = [...fcuList];
-                      nd[idx] = { ...nd[idx], comp: v };
-                      set({ fcu_status: nd }); 
-                  }} />
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[9px] font-bold text-slate-400 uppercase min-w-[50px]">Remark:</span>
-              <input 
-                className="flex-1 bg-transparent border-b border-slate-200 text-[10px] focus:outline-none py-0.5 print:hidden"
-                value={f.remark || ""}
-                disabled={disabled}
-                placeholder="N/A"
-                onChange={(e) => {
-                  const nd = [...fcuList];
-                  nd[idx] = { ...nd[idx], remark: e.target.value };
-                  set({ fcu_status: nd });
-                }}
-              />
-              <span className="hidden print:block flex-1 text-[9px] border-b border-black font-bold">
-                {f.remark || ""}
-              </span>
-            </div>
+      {(Array.isArray(fd.fire_alarm) ? fd.fire_alarm : []).map((p: any, pi: number) => (
+        <div key={pi} className="border-b border-slate-900">
+          <div className="text-[11px] font-black uppercase bg-slate-50 px-3 py-1.5 border-b border-slate-200 text-indigo-700 flex justify-between items-center">
+            <EText
+              id={`fa_panel_${pi}`} fallback={p.id} editable={editable}
+              onChange={(val) => {
+                const nd = [...fd.fire_alarm];
+                nd[pi].id = val;
+                set({ fire_alarm: nd });
+              }}
+            />
+            {editable && (
+              <IconButton size="small" className="p-0 text-rose-500" onClick={() => {
+                const nd = fd.fire_alarm
+                  .filter((_: any, i: number) => i !== pi)
+                  .map((f: any, i: number) => ({ ...f, id: `Panel #${i + 1}` }));
+                set({ fire_alarm: nd });
+              }}>
+                <FuseSvgIcon size={12}>heroicons-outline:trash</FuseSvgIcon>
+              </IconButton>
+            )}
           </div>
-        ))}
-      </div>
+          <table className="w-full border-collapse text-[11px]">
+            <tbody>
+              {[
+                { lbl: 'Bell ISO', fld: 'bell', tid: 'fa_lbl1' },
+                { lbl: 'Buzzer ISO', fld: 'buzzer', tid: 'fa_lbl2' },
+                { lbl: 'FAP ISO', fld: 'fap', tid: 'fa_lbl3' }
+              ].map((row, idx) => (
+                <tr key={row.fld} className="even:bg-slate-50/50 hover:bg-indigo-50/30 transition-colors">
+                  <td className={tdl}><EText id={row.tid} fallback={row.lbl} editable={editable} /></td>
+                  <td className="border border-slate-900 text-center p-0.5 w-[30%]">
+                    <OnOff value={p[row.fld]} disabled={disabled} onChange={(v: string) => { const nd = [...fd.fire_alarm]; nd[pi][row.fld] = v; set({ fire_alarm: nd }); }} />
+                  </td>
+                </tr>
+              ))}
+              <tr>
+                <td className={tdl}><EText id="fa_lbl4" fallback="Battery Voltage / Current" editable={editable} /></td>
+                <td className={td}>
+                  <div className="flex divide-x divide-slate-300">
+                    <CellIn disabled={disabled} value={p.batt_v} placeholder="V" onChange={(e: any) => { const nd = [...fd.fire_alarm]; nd[pi].batt_v = e.target.value; set({ fire_alarm: nd }); }} />
+                    <CellIn disabled={disabled} value={p.amp} placeholder="A" onChange={(e: any) => { const nd = [...fd.fire_alarm]; nd[pi].amp = e.target.value; set({ fire_alarm: nd }); }} />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      ))}
     </>
   );
 };
 
-const renderTransFanTable = (fd: any, set: any, disabled: boolean, editable: boolean, hdr: string) => {
+const renderFCUSection = (fd: any, set: any, disabled: boolean, editable: boolean) => {
+  const tdl = "text-[13px] font-bold border border-slate-900 p-2 uppercase text-slate-700";
   return (
     <>
-      <div className="text-[10px] font-black text-center bg-slate-200 border-y border-slate-900 p-0.5 uppercase text-slate-800">
-        <EText id="hdr_13_v3" fallback={hdr} editable={editable} />
+      <div className="text-[13px] font-black text-center bg-slate-200 border-b border-slate-900 p-1.5 uppercase text-slate-800">
+        <EText id="hdr_12" fallback="12. FCU UNIT STATUS" className="outline-none w-full block" editable={editable} />
       </div>
-      <div className="flex justify-around p-1 border border-slate-900 border-t-0 bg-slate-50/50">
-        {(['f1','f2','f3','f4'] as const).map((f, i) => (
-          <div key={f} className="flex flex-col items-center gap-0.5">
-            <span className="text-[8px] font-black text-slate-500 uppercase"><EText id={`fan_trans_${i}`} fallback={`F#${i+1}`} editable={editable} /></span>
-            <div className="print:block hidden">
-               <div className={`w-3 h-3 border border-black flex items-center justify-center ${fd.transformer_fan?.[f] ? 'bg-black text-white' : ''}`}>
-                 {fd.transformer_fan?.[f] ? 'v' : ''}
-               </div>
-            </div>
-            <Checkbox size="small" className="print:hidden p-0" checked={!!fd.transformer_fan?.[f]} disabled={disabled} onChange={() => set({ transformer_fan: { ...fd.transformer_fan, [f]: !fd.transformer_fan?.[f] } })} />
-          </div>
-        ))}
-      </div>
+      <table className="w-full border-collapse text-[11px]">
+        <tbody>
+          {[['FCU #1A', 'fcu1a'], ['FCU #1B', 'fcu1b']].map(([lbl, key]) => (
+            <tr key={key} className="even:bg-slate-50/50 hover:bg-indigo-50/30 transition-colors">
+              <td className={tdl}>{lbl}</td>
+              <td className="border border-slate-900 text-center p-1.5"><OnOff value={fd.fcu_status?.[key]} disabled={disabled} onChange={(v: string) => set({ fcu_status: { ...fd.fcu_status, [key]: v } })} /></td>
+            </tr>
+          ))}
+          <tr className="bg-red-50/30">
+            <td colSpan={2} className="border border-slate-900 p-3 text-center text-red-700 uppercase tracking-widest leading-none mt-1">
+              <EText id="fcu_note" fallback="NOTES: OFF (GAS LEAKAGE DETECTED)" bigger editable={editable} />
+            </td>
+          </tr>
+          {[['FCU #2A', 'fcu2a'], ['FCU #2B', 'fcu2b']].map(([lbl, key]) => (
+            <tr key={key} className="even:bg-slate-50/50 hover:bg-indigo-50/30 transition-colors">
+              <td className={tdl}>{lbl}</td>
+              <td className="border border-slate-900 text-center p-1.5"><OnOff value={fd.fcu_status?.[key]} disabled={disabled} onChange={(v: string) => set({ fcu_status: { ...fd.fcu_status, [key]: v } })} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </>
   );
 };
 
-const renderACStatusTable = (fd: any, set: any, disabled: boolean, editable: boolean, hdr: string) => {
+const renderFansSection = (fd: any, set: any, disabled: boolean, editable: boolean) => {
+  const tdl = "text-[13px] font-bold border border-slate-900 p-2 uppercase text-slate-700";
   return (
     <>
-      <div className="text-[10px] font-black text-center bg-slate-200 border-y border-slate-900 p-0.5 uppercase text-slate-800">
-        <EText id="hdr_14_v3" fallback={hdr} editable={editable} />
+      <div className="text-[13px] font-black text-center bg-slate-200 border-y border-slate-900 p-1.5 uppercase text-slate-800">
+        <EText id="hdr_13" fallback="13. M&E TRANSFORMER FAN STATUS" className="outline-none w-full block" editable={editable} />
       </div>
-      <table className="w-full border-collapse text-[10px]">
+      <div className="flex justify-around p-4 border border-slate-900 border-t-0 bg-slate-50/50">
+        {(['f1', 'f2', 'f3', 'f4'] as const).map((f, i) => (
+          <label key={f} className="flex flex-col items-center gap-2 cursor-pointer group">
+            <span className="text-[11px] font-black text-slate-500 uppercase">
+              <EText id={`fan_trans_${i}`} fallback={`FAN #${i + 1}`} editable={editable} />
+            </span>
+            <Checkbox
+              size="small" checked={!!fd.transformer_fan?.[f]} disabled={disabled}
+              onChange={() => set({ transformer_fan: { ...fd.transformer_fan, [f]: !fd.transformer_fan?.[f] } })}
+              sx={{ '& .MuiSvgIcon-root': { fontSize: 24 } }}
+            />
+          </label>
+        ))}
+      </div>
+
+      <div className="text-[13px] font-black text-center bg-slate-200 border-y border-slate-900 p-1.5 uppercase text-slate-800 mt-4">
+        <EText id="hdr_14" fallback="14. M&E AIR-CON STATUS" className="outline-none w-full block" editable={editable} />
+      </div>
+      <table className="w-full border-collapse text-[11px]">
         <tbody>
           {[
             { lbl: 'A/C #1', key: 'ac1', id: 'ac_lbl1' },
             { lbl: 'A/C #2', key: 'ac2', id: 'ac_lbl2' }
           ].map(row => (
-            <tr key={row.key}>
-              <td className="text-[10px] font-bold border border-slate-900 px-1 uppercase">{row.lbl}</td>
-              <td className="border border-slate-900 text-center"><OnOff value={fd.mne_aircon?.[row.key]} disabled={disabled} onChange={(v: string) => set({ mne_aircon: { ...fd.mne_aircon, [row.key]: v } })} /></td>
+            <tr key={row.key} className="even:bg-slate-50/50 hover:bg-indigo-50/30 transition-colors">
+              <td className={tdl}><EText id={row.id} fallback={row.lbl} editable={editable} /></td>
+              <td className="border border-slate-900 text-center p-1.5 font-bold"><OnOff value={fd.mne_aircon?.[row.key]} disabled={disabled} onChange={(v: string) => set({ mne_aircon: { ...fd.mne_aircon, [row.key]: v } })} /></td>
             </tr>
           ))}
         </tbody>
       </table>
-    </>
-  );
-};
 
-const renderAVRFanTable = (fd: any, set: any, disabled: boolean, editable: boolean, hdr: string) => {
-  return (
-    <>
-      <div className="text-[10px] font-black text-center bg-slate-200 border-y border-slate-900 p-0.5 uppercase text-slate-800">
-        <EText id="hdr_15_v3" fallback={hdr} editable={editable} />
+      <div className="text-[13px] font-black text-center bg-slate-200 border-y border-slate-900 p-1.5 uppercase text-slate-800 mt-4">
+        <EText id="hdr_15" fallback="15. AVR FAN STATUS" className="outline-none w-full block" editable={editable} />
       </div>
-      <div className="flex justify-around p-1 border border-slate-900 border-t-0 bg-slate-50/50 flex-wrap gap-1">
-        {(['f1','f2','f3','f4','f5','f6','f7','f8'] as const).map((f, i) => (
-          <div key={f} className="flex flex-col items-center gap-0.5">
-            <span className="text-[8px] font-black text-slate-500 uppercase"><EText id={`fan_avr_${i}`} fallback={`F#${i+1}`} editable={editable} /></span>
-            <div className="print:block hidden">
-               <div className={`w-2.5 h-2.5 border border-black flex items-center justify-center ${fd.avr_fan?.[f] ? 'bg-black text-white' : ''}`}>
-                 {fd.avr_fan?.[f] ? 'v' : ''}
-               </div>
-            </div>
-            <Checkbox size="small" className="print:hidden p-0" checked={!!fd.avr_fan?.[f]} disabled={disabled} onChange={() => set({ avr_fan: { ...fd.avr_fan, [f]: !fd.avr_fan?.[f] } })} />
-          </div>
+      <div className="flex justify-around p-4 border border-slate-900 border-t-0 bg-slate-50/50 flex-wrap gap-4">
+        {(['f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8'] as const).map((f, i) => (
+          <label key={f} className="flex flex-col items-center gap-1 cursor-pointer">
+            <span className="text-[11px] font-black text-slate-500 uppercase">
+              <EText id={`fan_avr_${i}`} fallback={`F#${i + 1}`} editable={editable} />
+            </span>
+            <Checkbox
+              size="small" checked={!!fd.avr_fan?.[f]} disabled={disabled}
+              onChange={() => set({ avr_fan: { ...fd.avr_fan, [f]: !fd.avr_fan?.[f] } })}
+              sx={{ '& .MuiSvgIcon-root': { fontSize: 20 } }}
+            />
+          </label>
         ))}
       </div>
     </>
@@ -958,70 +1094,45 @@ const renderAVRFanTable = (fd: any, set: any, disabled: boolean, editable: boole
 
 const renderFooterSection = (meta: any, setMeta: any, disabled: boolean, editable: boolean) => {
   return (
-    <div className="mt-1 border-t-2 border-slate-900 pt-1">
-      <div className="flex divide-x divide-slate-400 border border-slate-900 bg-slate-50/20">
-        {/* Attended By */}
-        <div className="flex-1 p-2">
-          <div className="text-[10px] font-black uppercase text-slate-800 mb-1 border-b border-slate-300 pb-0.5 tracking-wider">Attended by :</div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[9px] font-bold min-w-[70px] uppercase">Name :</span>
-              <input className="flex-1 bg-transparent border-none text-[10px] border-b border-slate-300 font-bold uppercase focus:outline-none screen-only" value={meta.attendee} disabled={disabled} onChange={(e) => setMeta((m: any) => ({ ...m, attendee: e.target.value }))} />
-              <span className="print-only flex-1 border-b border-black text-[10px] font-bold">{meta.attendee || ""}</span>
+    <div className="border border-slate-900 border-t-2 mt-0">
+      <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-900">
+        <div className="p-3">
+          <div className="text-[12px] font-black uppercase mb-3 text-slate-500"><EText id="foot_lbl1" fallback="Attended by :" editable={editable} /></div>
+          <div className="space-y-3 mt-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[12px] font-black whitespace-nowrap"><EText id="foot_lbl2" fallback="Name :" editable={editable} /></span>
+              <TextField size="small" variant="standard" fullWidth disabled={disabled} value={meta.attendee} onChange={(e) => setMeta((m: any) => ({ ...m, attendee: e.target.value }))} inputProps={{ style: { fontSize: 13, fontWeight: 700 } }} />
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[9px] font-bold min-w-[70px] uppercase">Designation :</span>
-              <input className="flex-1 bg-transparent border-none text-[10px] border-b border-slate-300 font-bold uppercase focus:outline-none screen-only" value={meta.attendeeDesignation} disabled={disabled} onChange={(e) => setMeta((m: any) => ({ ...m, attendeeDesignation: e.target.value }))} />
-              <span className="print-only flex-1 border-b border-black text-[10px] font-bold">{meta.attendeeDesignation || ""}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[12px] font-black whitespace-nowrap"><EText id="foot_lbl3" fallback="Designation :" editable={editable} /></span>
+              <TextField size="small" variant="standard" fullWidth disabled={disabled} value={meta.attendeeDesignation} onChange={(e) => setMeta((m: any) => ({ ...m, attendeeDesignation: e.target.value }))} inputProps={{ style: { fontSize: 13, fontWeight: 700 } }} />
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[9px] font-bold min-w-[70px] uppercase">Date/Time :</span>
-              <input className="flex-1 bg-transparent border-none text-[10px] border-b border-slate-300 font-bold focus:outline-none screen-only" value={meta.date} disabled={disabled} onChange={(e) => setMeta((m: any) => ({ ...m, date: e.target.value }))} />
-              <span className="print-only flex-1 border-b border-black text-[10px] font-bold">{meta.date || ""}</span>
-            </div>
-            <div className="flex items-start gap-1.5 pt-1">
-              <span className="text-[9px] font-bold min-w-[70px] uppercase">Signature :</span>
-              <div className="flex-1 h-12 border border-dashed border-slate-400 rounded bg-white/50 flex items-center justify-center text-[9px] text-slate-400 italic font-black uppercase opacity-60">
-                 (Sign/Stamp Here)
-              </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[12px] font-black whitespace-nowrap"><EText id="foot_lbl4" fallback="Date/Time :" editable={editable} /></span>
+              <TextField size="small" variant="standard" fullWidth disabled={disabled} value={meta.date} onChange={(e) => setMeta((m: any) => ({ ...m, date: e.target.value }))} inputProps={{ style: { fontSize: 13, fontWeight: 700 } }} />
             </div>
           </div>
         </div>
-
-        {/* Verified By */}
-        <div className="flex-1 p-2">
-          <div className="text-[10px] font-black uppercase text-slate-800 mb-1 border-b border-slate-300 pb-0.5 tracking-wider">Verified by :</div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[9px] font-bold min-w-[70px] uppercase">Name :</span>
-              <input className="flex-1 bg-transparent border-none text-[10px] border-b border-slate-300 font-bold uppercase focus:outline-none screen-only" value={meta.verifier} disabled={disabled} onChange={(e) => setMeta((m: any) => ({ ...m, verifier: e.target.value }))} />
-              <span className="print-only flex-1 border-b border-black text-[10px] font-bold">{meta.verifier || ""}</span>
+        <div className="p-3">
+          <div className="text-[12px] font-black uppercase mb-3 text-slate-500"><EText id="foot_lbl5" fallback="Verified by :" editable={editable} /></div>
+          <div className="space-y-3 mt-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[12px] font-black whitespace-nowrap"><EText id="foot_lbl2_v" fallback="Name :" editable={editable} /></span>
+              <TextField size="small" variant="standard" fullWidth disabled={disabled} value={meta.verifier} onChange={(e) => setMeta((m: any) => ({ ...m, verifier: e.target.value }))} inputProps={{ style: { fontSize: 13, fontWeight: 700 } }} />
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[9px] font-bold min-w-[70px] uppercase">Designation :</span>
-              <input className="flex-1 bg-transparent border-none text-[10px] border-b border-slate-300 font-bold uppercase focus:outline-none screen-only" value={meta.verifierDesignation} disabled={disabled} onChange={(e) => setMeta((m: any) => ({ ...m, verifierDesignation: e.target.value }))} />
-              <span className="print-only flex-1 border-b border-black text-[10px] font-bold">{meta.verifierDesignation || ""}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[12px] font-black whitespace-nowrap"><EText id="foot_lbl3_v" fallback="Designation :" editable={editable} /></span>
+              <TextField size="small" variant="standard" fullWidth disabled={disabled} value={meta.verifierDesignation} onChange={(e) => setMeta((m: any) => ({ ...m, verifierDesignation: e.target.value }))} inputProps={{ style: { fontSize: 13, fontWeight: 700 } }} />
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[9px] font-bold min-w-[70px] uppercase">Date/Time :</span>
-              <input className="flex-1 bg-transparent border-none text-[10px] border-b border-slate-300 font-bold focus:outline-none screen-only" value={meta.date} disabled={disabled} onChange={(e) => setMeta((m: any) => ({ ...m, date: e.target.value }))} />
-              <span className="print-only flex-1 border-b border-black text-[10px] font-bold">{meta.date || ""}</span>
-            </div>
-            <div className="flex items-start gap-1.5 pt-1">
-              <span className="text-[9px] font-bold min-w-[70px] uppercase">Signature :</span>
-              <div className="flex-1 h-12 border border-dashed border-slate-400 rounded bg-white/50 flex items-center justify-center text-[9px] text-slate-400 italic font-black uppercase opacity-60">
-                 (Sign/Stamp Here)
-              </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[12px] font-black whitespace-nowrap"><EText id="foot_lbl4_v" fallback="Date/Time :" editable={editable} /></span>
+              <TextField size="small" variant="standard" fullWidth disabled={disabled} value={meta.date} onChange={(e) => setMeta((m: any) => ({ ...m, date: e.target.value }))} inputProps={{ style: { fontSize: 13, fontWeight: 700 } }} />
             </div>
           </div>
         </div>
-      </div>
-      
-      {/* Global Remarks */}
-      <div className="border-2 border-t-0 border-slate-900 p-2 bg-slate-50/10">
-        <div className="text-[9px] font-black uppercase text-slate-500 mb-1 tracking-widest leading-none">Remarks / Observations:</div>
-        <div className="text-[11px] font-black border-none min-h-[40px] italic text-slate-800">
-           {meta.remarks || "No additional observations reported."}
+        <div className="p-3">
+          <div className="text-[12px] font-black uppercase mb-3 text-slate-500"><EText id="foot_lbl6" fallback="Remarks / Observations:" bigger editable={editable} /></div>
+          <TextField size="small" variant="standard" fullWidth multiline rows={4} disabled={disabled} value={meta.remarks} onChange={(e) => setMeta((m: any) => ({ ...m, remarks: e.target.value }))} inputProps={{ style: { fontSize: 16, fontWeight: 700 } }} />
         </div>
       </div>
     </div>
@@ -1030,21 +1141,21 @@ const renderFooterSection = (meta: any, setMeta: any, disabled: boolean, editabl
 
 const DailyChecklistPage: FC = () => {
   const theme = useTheme();
-  const { activeProjectId } = useProject();
+  const { activeProject: selectedProject } = useProject();
   const [view, setView] = useState<"history" | "form">("history");
   const [isDesigning, setIsDesigning] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [company, setCompany] = useState<"kinetic_motion" | "sabahnet">("kinetic_motion");
   const [selectedHistory, setSelectedHistory] = useState<DailyChecklist | null>(null);
   const [formData, setFormData] = useState<any>(DEFAULT_SECTIONS());
-  
+
   // Load template on start
   useEffect(() => {
     const saved = localStorage.getItem('elv_checklist_tmpl');
     if (saved && view === 'form' && !isEditing && !selectedHistory) {
       try {
         setFormData(JSON.parse(saved));
-      } catch(e) {}
+      } catch (e) { }
     }
   }, [view, isEditing, selectedHistory]);
 
@@ -1056,7 +1167,9 @@ const DailyChecklistPage: FC = () => {
     docNo: "SN/SDC/F08", revNo: "3", classification: "Internal",
     shift: "NIGHT SHIFT",
   });
-  const [isPrinting, setIsPrinting] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const [currentStep, setCurrentStep] = useState(1);
   const steps = [
     "UPS System", "PECS & PDU", "BMS Readings", "HSSD, Leak & EMS",
@@ -1072,21 +1185,6 @@ const DailyChecklistPage: FC = () => {
   });
   const disabled = false;
 
-  const handlePrint = () => {
-    setIsPrinting(true);
-    // Wait for state to propagate
-    setTimeout(() => {
-      window.print();
-      // Reset state and redirect
-      setIsPrinting(false);
-      setView("history");
-      setSelectedHistory(null);
-      setIsEditing(false);
-      setIsDesigning(false);
-    }, 1000);
-  };
-
-
 
 
 
@@ -1100,7 +1198,7 @@ const DailyChecklistPage: FC = () => {
   }, [company, selectedHistory, isEditing]);
 
   const { data: history = [], isLoading } = useDailyChecklists(
-    activeProjectId,
+    selectedProject?.id,
     // No company filter - show ALL records so submitted entries are always visible
   );
   const addMutation = useAddDailyChecklist();
@@ -1108,7 +1206,7 @@ const DailyChecklistPage: FC = () => {
   const deleteMutation = useDeleteDailyChecklist();
 
   const handleSave = async () => {
-    if (!activeProjectId) return;
+    if (!selectedProject) return;
 
     if (isDesigning) {
       localStorage.setItem('elv_checklist_tmpl', JSON.stringify(formData));
@@ -1119,7 +1217,7 @@ const DailyChecklistPage: FC = () => {
     }
 
     const payload = {
-      project_id: activeProjectId,
+      project_id: selectedProject.id,
       company_type: company,
       check_date: meta.date,
       attendee_name: meta.attendee,
@@ -1143,7 +1241,7 @@ const DailyChecklistPage: FC = () => {
         try {
           const body = await error.response.json();
           msg = body?.message || JSON.stringify(body?.errors || body);
-        } catch {}
+        } catch { }
       } else if (error?.message) {
         msg = error.message;
       }
@@ -1155,7 +1253,10 @@ const DailyChecklistPage: FC = () => {
   const handleViewHistory = (record: DailyChecklist) => {
     setSelectedHistory(record);
     // Always use structured data. If it's an old array format, fallback to default.
-    setFormData(Array.isArray(record.sections_data) ? DEFAULT_SECTIONS() : (record.sections_data || DEFAULT_SECTIONS()));
+    // Ensure we have all sections by merging with default template
+    const rawData = record.sections_data;
+    const sections = Array.isArray(rawData) ? DEFAULT_SECTIONS() : { ...DEFAULT_SECTIONS(), ...rawData };
+    setFormData(sections);
     setMeta({
       ...meta,
       attendee: record.attendee_name,
@@ -1175,95 +1276,67 @@ const DailyChecklistPage: FC = () => {
     const fd = formData;
     const set = (patch: any) => setFormData((p: any) => ({ ...p, ...patch }));
 
-    const documentHeader = (pageNum: number) => (
-      <div className="flex flex-col border-b border-slate-900 pb-1 mb-1">
-        <div className="flex items-start justify-between w-full">
-          {/* Logo & Project */}
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-slate-900 flex items-center justify-center p-1 rounded-sm">
-                <FuseSvgIcon size={24} className="text-white">heroicons-outline:bolt</FuseSvgIcon>
-              </div>
-              <div className="flex flex-col">
-                <Typography className="text-[18px] font-black leading-none text-slate-900 tracking-tighter">KINETIC</Typography>
-                <Typography className="text-[14px] font-black leading-none text-slate-600 tracking-tighter">MOTION</Typography>
-              </div>
-            </div>
-            <div className="mt-1">
-              <Typography className="text-[10px] font-black text-slate-900 uppercase">PROJECT TITLE : SSDC</Typography>
-            </div>
-          </div>
-
-          {/* Center Title */}
-          <div className="flex flex-col items-center justify-center flex-1">
-            <Typography className="text-[16px] font-black uppercase text-slate-900 bg-slate-200 px-8 py-1.5 border border-slate-900 w-full text-center">
-              DAILY CHECKLIST FOR ALL EQUIPMENT
-            </Typography>
-            <Typography className="text-[9px] font-bold text-slate-500 uppercase mt-1 tracking-[0.2em]">PROJECT: SSDC | PAGE {pageNum} OF 2</Typography>
-          </div>
-
-          {/* Company & Doc Info */}
-          <div className="text-[8px] font-bold text-right flex flex-col justify-between h-full">
-            <div>
-              <Typography className="text-[10px] font-black text-slate-900">Kinetic Motion Sdn Bhd.</Typography>
-              <p className="text-slate-500 max-w-[200px]">Lot 24-27, Likas Square Commercial Centre, Kota Kinabalu</p>
-              <p className="text-slate-400">Tel: 088-266015 Fax: 088-266015</p>
-              <p className="text-indigo-400">Email: support@kineticmotion.com.my</p>
-            </div>
-            <div className="flex justify-end gap-2 mt-1">
-               <span className="uppercase text-slate-400">DOC NO:</span> <span className="text-slate-900">{meta.docNo}</span>
-               <span className="uppercase text-slate-400 ml-2">REV:</span> <span className="text-slate-900 text-center border-l border-slate-300 pl-2">{meta.revNo}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-
     return (
-      <Box className="bg-transparent print:space-y-0">
-        
-        {/* CONSOLIDATED GRID PAGE */}
-        <div 
-          className="bg-white p-6 shadow-xl rounded-[2.5rem] border border-slate-200 print:border-none print:shadow-none print:p-0 print:rounded-none"
-          style={{ minHeight: '90vh' }}
-        >
-          {documentHeader(1)}
-
-          <div className="grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-0 border border-slate-900 border-collapse overflow-hidden">
-            {/* COLUMN 1 */}
-            <div className="flex flex-col border-r border-slate-900 divide-y divide-slate-400">
-              <div className="p-0">{renderUPSSection(fd, set, disabled, isDesigning, "1. UPS SYSTEM (APM-120KVA)")}</div>
-              <div className="p-0">{renderPECSSection(fd, set, disabled, isDesigning, "2. PECS SYSTEM DB-AIRE / DBAD26Q Vision 2020I")}</div>
-              <div className="p-0 flex-1">{renderBMSSection(fd, set, disabled, isDesigning, "3. BMS READING")}</div>
-            </div>
-
-            {/* COLUMN 2 */}
-            <div className="flex flex-col border-r border-slate-900 divide-y divide-slate-400">
-               <div className="p-0">{renderPDUSection(fd, set, disabled, isDesigning, "4. PDU SYSTEM GE-160A / 54 WAYS")}</div>
-               <div className="p-0">{renderUPSSBSection(fd, set, disabled, isDesigning, "5. 1250A TPN UPS SWITCH BOARD")}</div>
-               <div className="p-0">{renderACSSection(fd, set, disabled, isDesigning, "6. 600A TPN AIRCOND SWITCH BOARD")}</div>
-               <div className="p-0 flex-1">{renderGensetSection(fd, set, disabled, isDesigning, "7. GENSET STATUS")}</div>
-            </div>
-
-            {/* COLUMN 3 */}
-            <div className="flex flex-col divide-y divide-slate-400">
-               <div className="p-0">{renderHSSDSection(fd, set, disabled, isDesigning, "8. HSSD STATUS")}</div>
-               <div className="p-0">{renderLeakSection(fd, set, disabled, isDesigning, "9. LEAK DETECTION STATUS")}</div>
-               <div className="p-0">{renderEMSSection(fd, set, disabled, isDesigning, "10. EMS CONTROL PANEL STATUS")}</div>
-               <div className="p-0">{renderFireAlarmSection(fd, set, disabled, isDesigning, "11. FIRE ALARM PANEL STATUS")}</div>
-               <div className="p-0">{renderFCUSection(fd, set, disabled, isDesigning, "12. FCU UNIT STATUS")}</div>
-               <div className="p-0">{renderTransFanTable(fd, set, disabled, isDesigning, "13. MAE TRANSFORMER FAN STATUS")}</div>
-               <div className="p-0">{renderACStatusTable(fd, set, disabled, isDesigning, "14. MAE AIRCON STATUS")}</div>
-               <div className="p-0 flex-1">{renderAVRFanTable(fd, set, disabled, isDesigning, "15. AVR FAN STATUS")}</div>
-            </div>
+      <Paper elevation={0} className="bg-white overflow-x-auto min-w-[900px] text-slate-900">
+        {/* ── DOCUMENT HEADER ── */}
+        <div className="flex border-b-2 border-slate-900">
+          <div className="flex-[3] text-center py-2 border-r-2 border-slate-900 bg-slate-50">
+            <Typography className="text-[14px] font-black uppercase tracking-[0.2em]">
+              <EText id="doc_title" fallback="Daily Checklist For All Equipment" editable={isDesigning} />
+            </Typography>
           </div>
-
-          {/* FOOTER SECTION */}
-          <div className="mt-1">
-             {renderFooterSection(meta, setMeta, disabled, isDesigning)}
+          <div className="flex-1 p-1 bg-slate-50 space-y-0.5 text-[8px] font-black">
+            <div className="flex justify-between border-b border-slate-200">
+              <span className="uppercase tracking-[0.1em]"><EText id="meta_th1" fallback="Document No:" editable={isDesigning} /></span>
+              <span>{meta.docNo}</span>
+            </div>
+            <div className="flex justify-between border-b border-slate-200">
+              <span className="uppercase tracking-[0.1em]"><EText id="meta_th2" fallback="Revision No:" editable={isDesigning} /></span>
+              <span>{meta.revNo}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="uppercase tracking-[0.1em]"><EText id="meta_th3" fallback="Classification:" editable={isDesigning} /></span>
+              <span>{meta.classification}</span>
+            </div>
           </div>
         </div>
-      </Box>
+
+        {/* ── 4-COLUMN BODY ── */}
+        <div className="grid grid-cols-4 border border-slate-900" style={{ borderCollapse: 'collapse' }}>
+
+          {/* COLUMN 1 */}
+          <div className="border-r border-slate-900">
+            {renderUPSSection(fd, set, disabled, isDesigning)}
+            {renderPECSSection(fd, set, disabled, isDesigning)}
+            {renderPDUSection(fd, set, disabled, isDesigning)}
+          </div>
+
+          {/* COLUMN 2 */}
+          <div className="border-r border-slate-900">
+            {renderBMSSection(fd, set, disabled, isDesigning)}
+            {renderHSSDSection(fd, set, disabled, isDesigning)}
+            {renderLeakSection(fd, set, disabled, isDesigning)}
+            {renderEMSSection(fd, set, disabled, isDesigning)}
+          </div>
+
+          {/* COLUMN 3 */}
+          <div className="border-r border-slate-900">
+            {renderUPSSBSection(fd, set, disabled, isDesigning)}
+            {renderACSSection(fd, set, disabled, isDesigning)}
+            {renderGensetSection(fd, set, disabled, isDesigning)}
+          </div>
+
+          {/* COLUMN 4 */}
+          <div>
+            {renderFireAlarmSection(fd, set, disabled, isDesigning)}
+            {renderFCUSection(fd, set, disabled, isDesigning)}
+            {renderFansSection(fd, set, disabled, isDesigning)}
+          </div>
+        </div>
+
+        {/* ── FOOTER ── */}
+        {renderFooterSection(meta, setMeta, disabled, isDesigning)}
+      </Paper>
     );
   };
 
@@ -1277,14 +1350,44 @@ const DailyChecklistPage: FC = () => {
   const normalCount = totalRecords - alarmCount;
 
   return (
-    <div className="w-full min-h-screen bg-slate-50 dark:bg-[#0a0f1e] relative overflow-hidden">
+    <div className="w-full min-h-screen bg-slate-50 dark:bg-[#0a0f1e] relative overflow-hidden print:p-0">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+            /* Root reset */
+            html, body, #fuse-layout, #fuse-main, #root, #__next {
+                margin: 0 !important;
+                padding: 0 !important;
+                display: block !important;
+                width: 100% !important;
+                height: auto !important;
+            }
+            /* Container absolute reset */
+            #print-checklist-container {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+                z-index: 999999 !important;
+            }
+            /* Hide EVERYTHING except report */
+            .print-hidden-wrapper { 
+                display: none !important; 
+                height: 0 !important; 
+                overflow: hidden !important; 
+            }
+            @page { margin: 1cm; size: A4 landscape; }
+        }
+      `}} />
       {/* Subtle bg grid */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.06]" style={{ backgroundImage: 'linear-gradient(#4f46e5 1px, transparent 1px), linear-gradient(90deg, #4f46e5 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
+      <div className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.06] print:hidden" style={{ backgroundImage: 'linear-gradient(#4f46e5 1px, transparent 1px), linear-gradient(90deg, #4f46e5 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
 
       {/* Top gradient accent */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-600 via-violet-500 to-sky-500" />
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-600 via-violet-500 to-sky-500 print:hidden" />
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-10 relative z-10">
+      <div id="normal-app-container" className="max-w-7xl mx-auto px-6 lg:px-10 py-10 relative z-10 print-hidden-wrapper">
 
         {/* ── Header ── */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-10 print:hidden">
@@ -1314,11 +1417,10 @@ const DailyChecklistPage: FC = () => {
                   <button
                     key={opt.id}
                     onClick={() => setCompany(opt.id as any)}
-                    className={`relative px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 ${
-                      company === opt.id
+                    className={`relative px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 ${company === opt.id
                         ? opt.color === 'rose' ? 'bg-rose-500 text-white shadow-lg shadow-rose-200 dark:shadow-none' : 'bg-sky-500 text-white shadow-lg shadow-sky-200 dark:shadow-none'
                         : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                    }`}
+                      }`}
                   >
                     <span className="block leading-none">{opt.label}</span>
                     <span className="block text-[8px] font-bold opacity-70 mt-0.5">{opt.sub} Shift</span>
@@ -1365,8 +1467,8 @@ const DailyChecklistPage: FC = () => {
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                 {isDesigning && (
-                   <Button 
+                {isDesigning && (
+                  <Button
                     variant="outlined" color="error" size="small"
                     startIcon={<FuseSvgIcon size={16}>heroicons-outline:refresh</FuseSvgIcon>}
                     className="rounded-xl border-dashed px-4 font-black h-12"
@@ -1378,10 +1480,24 @@ const DailyChecklistPage: FC = () => {
                   >
                     Reset Template
                   </Button>
-                 )}
+                )}
                 <Button
                   variant="outlined"
-                  onClick={handlePrint}
+                  onClick={async () => {
+                    const printContainer = document.getElementById('print-checklist-container');
+                    if (printContainer) {
+                        const images = Array.from(printContainer.getElementsByTagName('img'));
+                        await Promise.all(images.map(img => 
+                            img.complete ? Promise.resolve() : new Promise(resolve => {
+                                img.onload = resolve;
+                                img.onerror = resolve; 
+                            })
+                        ));
+                        setTimeout(() => window.print(), 300);
+                    } else {
+                        window.print();
+                    }
+                  }}
                   startIcon={<FuseSvgIcon size={18}>heroicons-outline:printer</FuseSvgIcon>}
                   className="rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-black text-slate-600 dark:text-slate-300 px-6 h-12 hover:bg-slate-50 transition-all shadow-sm"
                 >
@@ -1415,12 +1531,11 @@ const DailyChecklistPage: FC = () => {
               <div key={stat.label} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <Typography className="text-[10px] font-black uppercase tracking-widest text-slate-400">{stat.label}</Typography>
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                    stat.color === 'indigo' ? 'bg-indigo-50 text-indigo-600' :
-                    stat.color === 'violet' ? 'bg-violet-50 text-violet-600' :
-                    stat.color === 'emerald' ? 'bg-emerald-50 text-emerald-600' :
-                    'bg-rose-50 text-rose-600'
-                  }`}>
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${stat.color === 'indigo' ? 'bg-indigo-50 text-indigo-600' :
+                      stat.color === 'violet' ? 'bg-violet-50 text-violet-600' :
+                        stat.color === 'emerald' ? 'bg-emerald-50 text-emerald-600' :
+                          'bg-rose-50 text-rose-600'
+                    }`}>
                     <FuseSvgIcon size={16}>{stat.icon}</FuseSvgIcon>
                   </div>
                 </div>
@@ -1471,58 +1586,76 @@ const DailyChecklistPage: FC = () => {
                           elevation={0}
                         >
                           {/* Color accent top bar */}
-                          <div className={`h-1 w-full ${ isNormal ? (isKM ? 'bg-gradient-to-r from-sky-400 to-indigo-500' : 'bg-gradient-to-r from-rose-400 to-pink-500') : 'bg-gradient-to-r from-amber-400 to-orange-500'}`} />
+                          <div className={`h-1 w-full ${isNormal ? (isKM ? 'bg-gradient-to-r from-sky-400 to-indigo-500' : 'bg-gradient-to-r from-rose-400 to-pink-500') : 'bg-gradient-to-r from-amber-400 to-orange-500'}`} />
 
-                            <div className="p-6">
-                              {/* Header row */}
-                              <div className="flex justify-between items-start mb-5">
+                          <div className="p-6">
+                            {/* Header row */}
+                            <div className="flex justify-between items-start mb-5">
+                              <div>
+                                <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-black tracking-widest uppercase border ${isKM ? 'bg-sky-50 border-sky-100 text-sky-600 dark:bg-sky-900/20 dark:border-sky-900 dark:text-sky-400' : 'bg-rose-50 border-rose-100 text-rose-600 dark:bg-rose-900/20 dark:border-rose-900 dark:text-rose-400'
+                                  }`}>
+                                  <div className={`w-2 h-2 rounded-full ${isKM ? 'bg-sky-500' : 'bg-rose-500'}`} />
+                                  {isKM ? 'Kinetic Motion' : 'Sabah Net'}
+                                </div>
+                                <Typography className="text-[11px] font-black text-slate-400 uppercase tracking-widest mt-2 ml-1">
+                                  {isKM ? 'Night' : 'Morning'} Shift
+                                </Typography>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <IconButton
+                                  size="small"
+                                  onClick={async (e) => { 
+                                    e.stopPropagation(); 
+                                    handleViewHistory(record); 
+                                    // Explicit wait for images to decode before printing
+                                    setTimeout(async () => {
+                                        const printContainer = document.getElementById('print-checklist-container');
+                                        if (printContainer) {
+                                            const images = Array.from(printContainer.getElementsByTagName('img'));
+                                            await Promise.all(images.map(img => 
+                                                img.complete ? Promise.resolve() : new Promise(resolve => {
+                                                    img.onload = resolve;
+                                                    img.onerror = resolve; 
+                                                })
+                                            ));
+                                            // Final safe delay for browser repaint
+                                            setTimeout(() => window.print(), 350);
+                                        } else {
+                                            window.print();
+                                        }
+                                    }, 1000); 
+                                  }}
+                                  className="text-slate-400 hover:text-indigo-600 bg-slate-50 border border-slate-100 dark:bg-slate-800 dark:border-slate-700"
+                                >
+                                  <FuseSvgIcon size={16}>heroicons-outline:printer</FuseSvgIcon>
+                                </IconButton>
+                                <div className={`px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest ${isNormal ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'
+                                  }`}>
+                                  {record.status_summary}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Date block */}
+                            <div className="mb-6">
+                              <Typography className="text-4xl font-black text-slate-900 dark:text-white leading-none group-hover:text-indigo-600 transition-colors">
+                                {format(dateObj, 'dd')}
+                                <span className="text-2xl font-black text-slate-400 ml-2">{format(dateObj, 'MMM yyyy')}</span>
+                              </Typography>
+                              <Typography className="text-[12px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">
+                                {format(dateObj, 'EEEE')}
+                              </Typography>
+                            </div>
+
+                            {/* Attendee / Verifier */}
+                            <div className="space-y-3 mb-6">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-[12px] font-black text-indigo-600">
+                                  {record.attendee_name?.charAt(0).toUpperCase() ?? '?'}
+                                </div>
                                 <div>
-                                  <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-black tracking-widest uppercase border ${
-                                    isKM ? 'bg-sky-50 border-sky-100 text-sky-600 dark:bg-sky-900/20 dark:border-sky-900 dark:text-sky-400' : 'bg-rose-50 border-rose-100 text-rose-600 dark:bg-rose-900/20 dark:border-rose-900 dark:text-rose-400'
-                                  }`}>
-                                    <div className={`w-2 h-2 rounded-full ${isKM ? 'bg-sky-500' : 'bg-rose-500'}`} />
-                                    {isKM ? 'Kinetic Motion' : 'Sabah Net'}
-                                  </div>
-                                  <Typography className="text-[11px] font-black text-slate-400 uppercase tracking-widest mt-2 ml-1">
-                                    {isKM ? 'Night' : 'Morning'} Shift
-                                  </Typography>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <IconButton 
-                                    size="small" 
-                                    onClick={(e) => { e.stopPropagation(); handleViewHistory(record); setTimeout(handlePrint, 500); }} 
-                                    className="text-slate-400 hover:text-indigo-600 bg-slate-50 border border-slate-100 dark:bg-slate-800 dark:border-slate-700"
-                                  >
-                                    <FuseSvgIcon size={16}>heroicons-outline:printer</FuseSvgIcon>
-                                  </IconButton>
-                                  <div className={`px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest ${
-                                    isNormal ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'
-                                  }`}>
-                                    {record.status_summary}
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Date block */}
-                              <div className="mb-6">
-                                <Typography className="text-4xl font-black text-slate-900 dark:text-white leading-none group-hover:text-indigo-600 transition-colors">
-                                  {format(dateObj, 'dd')}
-                                  <span className="text-2xl font-black text-slate-400 ml-2">{format(dateObj, 'MMM yyyy')}</span>
-                                </Typography>
-                                <Typography className="text-[12px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">
-                                  {format(dateObj, 'EEEE')}
-                                </Typography>
-                              </div>
-
-                              {/* Attendee / Verifier */}
-                              <div className="space-y-3 mb-6">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-[12px] font-black text-indigo-600">
-                                    {record.attendee_name?.charAt(0).toUpperCase() ?? '?'}
-                                  </div>
-                                  <div>
-                                    <Typography className="text-[10px] uppercase font-black text-slate-400 tracking-widest leading-none mb-1">Attended</Typography>
-                                    <Typography className="text-[13px] font-bold text-slate-700 dark:text-slate-200">{record.attendee_name || 'N/A'}</Typography>
+                                  <Typography className="text-[10px] uppercase font-black text-slate-400 tracking-widest leading-none mb-1">Attended</Typography>
+                                  <Typography className="text-[13px] font-bold text-slate-700 dark:text-slate-200">{record.attendee_name || 'N/A'}</Typography>
                                 </div>
                               </div>
                               {record.verified_by && (
@@ -1549,7 +1682,7 @@ const DailyChecklistPage: FC = () => {
                               <IconButton
                                 size="small"
                                 className="bg-slate-50 hover:bg-rose-500 text-slate-300 hover:text-white transition-all rounded-xl p-1.5"
-                                onClick={(e) => { e.stopPropagation(); if(window.confirm('Delete this audit record?')) deleteMutation.mutate(record.id); }}
+                                onClick={(e) => { e.stopPropagation(); if (window.confirm('Delete this audit record?')) deleteMutation.mutate(record.id); }}
                               >
                                 <FuseSvgIcon size={14}>heroicons-outline:trash</FuseSvgIcon>
                               </IconButton>
@@ -1573,9 +1706,8 @@ const DailyChecklistPage: FC = () => {
               {/* Form Toolbar */}
               <div className="flex justify-between items-center bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl px-6 py-4 shadow-sm print:hidden">
                 <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                    company === 'sabahnet' ? 'bg-rose-50 text-rose-600' : 'bg-sky-50 text-sky-600'
-                  }`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${company === 'sabahnet' ? 'bg-rose-50 text-rose-600' : 'bg-sky-50 text-sky-600'
+                    }`}>
                     <FuseSvgIcon size={20}>heroicons-outline:clipboard-document-check</FuseSvgIcon>
                   </div>
                   <div>
@@ -1588,10 +1720,10 @@ const DailyChecklistPage: FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                   <Button
+                  <Button
                     variant="outlined"
                     startIcon={<FuseSvgIcon size={14}>heroicons-outline:printer</FuseSvgIcon>}
-                    onClick={handlePrint}
+                    onClick={() => window.print()}
                     className="rounded-xl font-black text-xs border border-slate-200"
                   >
                     Print Full Report
@@ -1609,19 +1741,35 @@ const DailyChecklistPage: FC = () => {
 
               {/* Stepper Component (Entry Only) */}
               {/* Stepper Component (Re-enabled per request) */}
-                <Paper
-                  elevation={0}
-                  className="p-3 md:p-6 mb-6 mt-4 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm"
-                >
-                    <div className="flex flex-col mb-4 pb-4 border-b border-slate-100">
-                      <span className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1">Current Section</span>
-                      <h2 className="text-2xl font-black text-slate-800 tracking-tight">{steps[currentStep-1]}</h2>
-                    </div>
+              <Paper
+                elevation={0}
+                className="p-3 md:p-6 mb-6 mt-4 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm"
+              >
+                <div className="flex justify-between items-center mb-4 pb-4 border-b border-slate-100">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1">Current Section</span>
+                    <h2 className="text-2xl font-black text-slate-800 tracking-tight">{steps[currentStep - 1]}</h2>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="small" variant="outlined" disabled={currentStep === 1} onClick={() => setCurrentStep(prev => prev - 1)}
+                      className="rounded-xl border-slate-200 text-slate-500 h-10 px-4 font-bold"
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      size="small" variant="contained" disabled={currentStep === totalSteps} onClick={() => setCurrentStep(prev => prev + 1)}
+                      className="rounded-xl bg-slate-800 text-white h-10 px-6 font-bold"
+                    >
+                      Next Section
+                    </Button>
+                  </div>
+                </div>
 
-                    <>
-                      <Stepper
-                        activeStep={currentStep - 1}
-                        alternativeLabel
+                <>
+                  <Stepper
+                    activeStep={currentStep - 1}
+                    alternativeLabel
                     className="mb-6"
                     sx={{
                       '& .MuiStepLabel-label': { fontSize: 10, fontWeight: 900, textTransform: 'uppercase', tracking: '0.1em', mt: 1 },
@@ -1639,37 +1787,31 @@ const DailyChecklistPage: FC = () => {
                   <div className="min-h-[300px] flex flex-col justify-between">
                     <div className="max-w-4xl mx-auto w-full border border-slate-200 p-4 bg-slate-50/80 dark:bg-slate-900/50 rounded-[2rem] shadow-inner overflow-x-auto ring-1 ring-slate-100 mb-4 mt-1">
                       <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                        {currentStep === 1 && renderUPSSection(formData, setFormDataPatch, disabled, isDesigning, "1. UPS System")}
+                        {currentStep === 1 && renderUPSSection(formData, setFormDataPatch, disabled, isDesigning)}
                         {currentStep === 2 && (
                           <div className="space-y-4">
-                            {renderPECSSection(formData, setFormDataPatch, disabled, isDesigning, "2. PECS System")}
-                            {renderPDUSection(formData, setFormDataPatch, disabled, isDesigning, "4. PDU System")}
+                            {renderPECSSection(formData, setFormDataPatch, disabled, isDesigning)}
+                            {renderPDUSection(formData, setFormDataPatch, disabled, isDesigning)}
                           </div>
                         )}
-                        {currentStep === 3 && renderBMSSection(formData, setFormDataPatch, disabled, isDesigning, "3. BMS Readings")}
+                        {currentStep === 3 && renderBMSSection(formData, setFormDataPatch, disabled, isDesigning)}
                         {currentStep === 4 && (
                           <div className="space-y-4">
-                            {renderHSSDSection(formData, setFormDataPatch, disabled, isDesigning, "8. HSSD Status")}
-                            {renderLeakSection(formData, setFormDataPatch, disabled, isDesigning, "9. Leak Detection")}
-                            {renderEMSSection(formData, setFormDataPatch, disabled, isDesigning, "10. EMS Control")}
+                            {renderHSSDSection(formData, setFormDataPatch, disabled, isDesigning)}
+                            {renderLeakSection(formData, setFormDataPatch, disabled, isDesigning)}
+                            {renderEMSSection(formData, setFormDataPatch, disabled, isDesigning)}
                           </div>
                         )}
                         {currentStep === 5 && (
                           <div className="space-y-4">
-                            {renderUPSSBSection(formData, setFormDataPatch, disabled, isDesigning, "5. UPS Switchboard")}
-                            {renderACSSection(formData, setFormDataPatch, disabled, isDesigning, "6. AC Switchboard")}
+                            {renderUPSSBSection(formData, setFormDataPatch, disabled, isDesigning)}
+                            {renderACSSection(formData, setFormDataPatch, disabled, isDesigning)}
                           </div>
                         )}
-                        {currentStep === 6 && renderGensetSection(formData, setFormDataPatch, disabled, isDesigning, "7. Genset Status")}
-                        {currentStep === 7 && renderFireAlarmSection(formData, setFormDataPatch, disabled, isDesigning, "11. Fire Alarm Panel")}
-                        {currentStep === 8 && renderFCUSection(formData, setFormDataPatch, disabled, isDesigning, "12. FCU Unit Status")}
-                        {currentStep === 9 && (
-                          <div className="space-y-4">
-                            {renderTransFanTable(formData, setFormDataPatch, disabled, isDesigning, "13. Transformer Fan")}
-                            {renderACStatusTable(formData, setFormDataPatch, disabled, isDesigning, "14. AC Status")}
-                            {renderAVRFanTable(formData, setFormDataPatch, disabled, isDesigning, "15. AVR Fan Status")}
-                          </div>
-                        )}
+                        {currentStep === 6 && renderGensetSection(formData, setFormDataPatch, disabled, isDesigning)}
+                        {currentStep === 7 && renderFireAlarmSection(formData, setFormDataPatch, disabled, isDesigning)}
+                        {currentStep === 8 && renderFCUSection(formData, setFormDataPatch, disabled, isDesigning)}
+                        {currentStep === 9 && renderFansSection(formData, setFormDataPatch, disabled, isDesigning)}
                         {currentStep === 10 && renderFooterSection(meta, setMeta, disabled, isDesigning)}
                       </div>
                     </div>
@@ -1684,7 +1826,7 @@ const DailyChecklistPage: FC = () => {
                       >
                         Back
                       </Button>
-                      
+
                       <div className="flex items-center gap-6">
                         <div className="flex flex-col items-center">
                           <Typography className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] leading-none mb-1">Step</Typography>
@@ -1715,92 +1857,52 @@ const DailyChecklistPage: FC = () => {
                     </div>
                   </div>
                 </>
-                </Paper>
+              </Paper>
+
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Hidden Full Layout for Printing Only - Portal to Body for maximum compatibility */}
-      {isPrinting && typeof document !== 'undefined' && createPortal(
-        <div id="ssdc-checklist-print-layout">
-          <style>
-            {`
+      {/* Global print style: hide body, portal overrides */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          html, body { background: white !important; }
+          /* display:none removes layout space (no blank pages) */
+          body > *:not(#print-checklist-container) { display: none !important; }
+          @page { margin: 10mm; size: A4 landscape; }
+        }
+      `}} />
+
+      {/* Print Portal - appended to body for reliable isolation */}
+      {mounted && createPortal(
+        <div id="print-checklist-container" style={{ position: 'fixed', top: -99999, left: -99999, pointerEvents: 'none' }}>
+          <style dangerouslySetInnerHTML={{ __html: `
             @media print {
-              @page { 
-                size: portrait !important; 
-                margin: 5mm !important; 
-              }
-              
-              /* Reset body for print */
-              body { 
-                background: white !important; 
-                color: black !important;
-                margin: 0 !important; 
-                padding: 0 !important; 
-                width: 100% !important; 
-                height: auto !important; 
-                overflow: visible !important;
+              * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+                color-adjust: exact !important;
               }
-              
-              /* Force hide everything except our target */
-              body > *:not(#ssdc-checklist-print-layout) {
-                display: none !important;
-              }
-              
-              #ssdc-checklist-print-layout { 
-                display: block !important;
+              #print-checklist-container {
                 visibility: visible !important;
                 position: static !important;
+                display: block !important;
                 width: 100% !important;
-                height: auto !important;
-                overflow: visible !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: white !important;
-                color: black !important;
+                pointer-events: auto !important;
               }
-              
-              #ssdc-checklist-print-layout *, 
-              #ssdc-checklist-print-layout *:after,
-              #ssdc-checklist-print-layout *:before {
+              #print-checklist-container * {
                 visibility: visible !important;
-                color: black !important;
-                border-color: black !important;
-                background-color: transparent !important;
-                box-shadow: none !important;
-                opacity: 1 !important;
               }
-
-              /* Specifically preserve background for headers */
-              .bg-slate-200, .bg-slate-100, .bg-slate-50 {
-                background-color: #f1f5f9 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-              }
-              
-              .flex-1 { flex: none !important; }
-              [style*="min-height"] { min-height: 0 !important; }
-              [style*="minHeight"] { min-height: 0 !important; }
-
-              table { border-collapse: collapse !important; width: 100% !important; page-break-inside: auto; }
-              tr { page-break-inside: avoid; page-break-after: auto; }
-              td, th { border: 1px solid black !important; color: black !important; }
-
-              .print-only { display: block !important; visibility: visible !important; }
-              .screen-only { display: none !important; }
+              table { page-break-inside: auto !important; }
+              tr { page-break-inside: avoid !important; page-break-after: auto !important; }
             }
-            
-            @media screen {
-              .print-only { display: none !important; }
-              .screen-only { display: block !important; }
-            }
-            `}
-          </style>
-          <div className="print:p-0">
-             {renderFullLayout(disabled)}
+          `}} />
+          <div className="w-full">
+            {renderFullLayout(disabled)}
           </div>
         </div>,
         document.body

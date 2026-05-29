@@ -5,6 +5,11 @@ export interface Project {
     id: number;
     name: string;
     description: string | null;
+    start_date?: string;
+    end_date?: string;
+    actual_start_date?: string;
+    actual_end_date?: string;
+    edit_reason?: string;
     location?: string;
     latitude?: number;
     longitude?: number;
@@ -18,14 +23,17 @@ export interface Project {
 }
 
 export type ViewMode = 'construction' | 'ssdc';
+export type SystemMode = 'elv' | 'ict' | 'business' | 'inventory';
 
 interface ProjectContextType {
     activeProjectId: number | null;
     activeProject: Project | null;
     viewMode: ViewMode;
+    activeSystem: SystemMode;
     setActiveProject: (project: Project | null) => void;
     setActiveProjectId: (id: number | null) => void;
     setViewMode: (mode: ViewMode) => void;
+    setActiveSystem: (system: SystemMode) => void;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -34,12 +42,33 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const [activeProjectId, setActiveProjectIdState] = useState<number | null>(null);
     const [activeProject, setActiveProjectState] = useState<Project | null>(null);
     const [viewMode, setViewModeState] = useState<ViewMode>('construction');
+    const [activeSystem, setActiveSystemState] = useState<SystemMode>('elv');
+
+    // Synchronize activeSystem with URL
+    useEffect(() => {
+        const pathname = window.location.pathname;
+        if (pathname.includes('/ict')) {
+            setActiveSystemState('ict');
+        } else if (pathname.includes('/business')) {
+            setActiveSystemState('business');
+        } else if (pathname.includes('/documentation') || pathname === '/assets' || pathname.startsWith('/assets/')) {
+            // Only set to 'inventory' if it's the standalone system
+            setActiveSystemState('inventory');
+        } else if (pathname === '/inventory' || (pathname.startsWith('/inventory') && !pathname.includes('material') && !pathname.includes('tool'))) {
+            // Only set to 'inventory' if it's the standalone system, not ELV inventory
+            setActiveSystemState('inventory');
+        } else if (pathname.includes('/elv') || pathname.includes('building') || pathname.includes('scheduling') || pathname.includes('on-site')) {
+            setActiveSystemState('elv');
+        }
+        // Note: We don't default to 'elv' here to avoid flickering if the system is already set via localStorage
+    }, []);
 
     // Initialize from localStorage on mount
     useEffect(() => {
         const storedId = localStorage.getItem('activeProjectId');
         const storedProject = localStorage.getItem('activeProject');
         const storedMode = localStorage.getItem('navbarViewMode') as ViewMode;
+        const storedSystem = localStorage.getItem('activeSystem') as SystemMode;
         
         if (storedId) {
             const id = parseInt(storedId, 10);
@@ -57,6 +86,10 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         if (storedMode === 'construction' || storedMode === 'ssdc') {
             setViewModeState(storedMode);
+        }
+
+        if (['elv', 'ict', 'business', 'inventory'].includes(storedSystem)) {
+            setActiveSystemState(storedSystem);
         }
     }, []);
 
@@ -90,14 +123,21 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         localStorage.setItem('navbarViewMode', mode);
     };
 
+    const setActiveSystem = (system: SystemMode) => {
+        setActiveSystemState(system);
+        localStorage.setItem('activeSystem', system);
+    };
+
     return (
         <ProjectContext.Provider value={{ 
             activeProjectId, 
             activeProject, 
             viewMode, 
+            activeSystem,
             setActiveProject, 
             setActiveProjectId,
-            setViewMode
+            setViewMode,
+            setActiveSystem
         }}>
             {children}
         </ProjectContext.Provider>

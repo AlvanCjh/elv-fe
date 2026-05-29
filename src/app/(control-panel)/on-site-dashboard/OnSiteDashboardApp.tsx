@@ -6,9 +6,10 @@ import WeatherWidget from './components/WeatherWidget';
 import InspectionReportsWidget from './components/InspectionReportsWidget';
 import MaintenanceReportsWidget from './components/MaintenanceReportsWidget';
 import BentoTile from './components/BentoTile';
+import DiagramsWidget from './components/DiagramsWidget';
 import RiskAssessmentWidget from './components/RiskAssessmentWidget';
 
-type DashboardModule = 'overview' | 'inspections' | 'maintenance' | 'risk' | 'weather';
+type DashboardModule = 'overview' | 'inspections' | 'maintenance' | 'risk' | 'weather' | 'drawing' | 'schematic';
 
 function OnSiteDashboardApp() {
     const [currentTab, setCurrentTab] = useState(0);
@@ -56,6 +57,18 @@ function OnSiteDashboardApp() {
                 return (
                     <div className="w-full max-w-7xl mx-auto min-h-[600px] animate-fade-in-up">
                         <MaintenanceReportsWidget />
+                    </div>
+                );
+            case 'drawing':
+                return (
+                    <div className="w-full max-w-7xl mx-auto min-h-[600px] animate-fade-in-up">
+                        <DiagramsWidget type="drawing" />
+                    </div>
+                );
+            case 'schematic':
+                return (
+                    <div className="w-full max-w-7xl mx-auto min-h-[600px] animate-fade-in-up">
+                        <DiagramsWidget type="schematic" />
                     </div>
                 );
             case 'weather':
@@ -112,6 +125,28 @@ function OnSiteDashboardApp() {
                             statusText="Active"
                             statusColorClass="text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/40"
                             onClick={() => setActiveModule('risk')}
+                        />
+                        <BentoTile
+                            id="drawing"
+                            title="Drawing Diagram"
+                            description="Upload and manage project drawing designs"
+                            icon="heroicons-outline:pencil-square"
+                            iconColor="text-indigo-500"
+                            iconBgColor="bg-indigo-100 dark:bg-indigo-900/30"
+                            statusText="Centralized"
+                            statusColorClass="text-indigo-700 bg-indigo-100 dark:text-indigo-400 dark:bg-indigo-900/40"
+                            onClick={() => setActiveModule('drawing')}
+                        />
+                        <BentoTile
+                            id="schematic"
+                            title="Schematic Diagram"
+                            description="Technical system schematic architectures"
+                            icon="heroicons-outline:square-3-stack-3d"
+                            iconColor="text-purple-500"
+                            iconBgColor="bg-purple-100 dark:bg-purple-900/30"
+                            statusText="Up to Date"
+                            statusColorClass="text-purple-700 bg-purple-100 dark:text-purple-400 dark:bg-purple-900/40"
+                            onClick={() => setActiveModule('schematic')}
                         />
 
                         <BentoTile

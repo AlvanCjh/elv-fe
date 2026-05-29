@@ -1,5 +1,3 @@
-import AvatarGroup from '@mui/material/AvatarGroup';
-import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 
 function AuthPagesMessageSection() {
@@ -21,31 +19,14 @@ function AuthPagesMessageSection() {
 
 			<div className="relative z-10 w-full max-w-4xl">
 				<div className="text-7xl leading-none font-bold text-gray-100">
-					<div>Agate Tower</div>
-					<div>Construction & Inventory Tracking</div>
+					<div>TP Projects</div>
+					<div>Management System</div>
 				</div>
 				<div className="mt-6 text-lg leading-6 tracking-tight text-gray-400">
-					Manage your construction projects and material inventory with precision.
-					Streamline your workflow and keep track of every site detail in real-time.
+					Efficiently manage all your operations with precision.
+					Streamline your workflow and keep track of every detail in real-time with our versatile system.
 				</div>
-				<div className="mt-8 flex items-center">
-					<AvatarGroup
-						sx={{
-							'& .MuiAvatar-root': {
-								borderColor: 'primary.main'
-							}
-						}}
-					>
-						<Avatar src={`${import.meta.env.BASE_URL}assets/images/avatars/female-18.jpg`} />
-						<Avatar src={`${import.meta.env.BASE_URL}assets/images/avatars/female-11.jpg`} />
-						<Avatar src={`${import.meta.env.BASE_URL}assets/images/avatars/male-09.jpg`} />
-						<Avatar src={`${import.meta.env.BASE_URL}assets/images/avatars/male-16.jpg`} />
-					</AvatarGroup>
 
-					<div className="ml-4 font-medium tracking-tight text-gray-400">
-						Trusted by top project managers
-					</div>
-				</div>
 			</div>
 		</Box>
 	);
