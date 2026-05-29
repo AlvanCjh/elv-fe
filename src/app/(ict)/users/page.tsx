@@ -136,7 +136,9 @@ function IctUsersPage() {
                         {systemLabel} User Management
                     </Typography>
                     <Typography className="text-slate-400 dark:text-gray-400 text-sm mt-1">
-                        Manage {systemLabel} specialist accounts and system access
+                        {activeSystem === 'business'
+                            ? "Manage business user accounts and system access"
+                            : `Manage ${systemLabel} specialist accounts and system access`}
                     </Typography>
                 </div>
                 <Button

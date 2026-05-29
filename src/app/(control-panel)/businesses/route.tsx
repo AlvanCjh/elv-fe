@@ -10,6 +10,7 @@ const LicenseTrackingPage     = lazy(() => import('./LicenseTrackingPage'));
 const SetupConfigPage         = lazy(() => import('./SetupConfigPage'));
 const QuotationPage           = lazy(() => import('./QuotationPage'));
 const QuotationListPage       = lazy(() => import('./QuotationListPage'));
+const IctUsersPage            = lazy(() => import('../../(ict)/users/page'));
 
 const routes: FuseRouteItemType[] = [
     {
@@ -46,6 +47,11 @@ const routes: FuseRouteItemType[] = [
         path: 'businesses/license-tracking',
         element: <LicenseTrackingPage />,
         auth: ['businesses', 'superadmin', 'admin', 'supervisor', 'business_admin', 'business_higher_admin']
+    },
+    {
+        path: 'businesses/users',
+        element: <IctUsersPage />,
+        auth: ['supervisor']
     },
     {
         path: 'businesses/setup-config',

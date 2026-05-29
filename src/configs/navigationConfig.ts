@@ -430,6 +430,14 @@ const navigationConfig: FuseNavItemType[] = [
 				url: 'businesses/license-tracking'
 			},
 			{
+				id: 'business-user-management',
+				title: 'User Management',
+				type: 'item',
+				icon: 'heroicons-outline:user-group',
+				url: 'businesses/users',
+				auth: ['supervisor']
+			},
+			{
 				id: 'business-setup-config',
 				title: 'Setup Config',
 				type: 'item',
