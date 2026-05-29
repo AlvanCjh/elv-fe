@@ -430,19 +430,28 @@ const navigationConfig: FuseNavItemType[] = [
 				url: 'businesses/license-tracking'
 			},
 			{
+				id: 'business-setup-config',
+				title: 'Setup Config',
+				type: 'item',
+				icon: 'heroicons-outline:cog-8-tooth',
+				url: 'businesses/setup-config'
+			}
+		]
+	},
+	{
+		id: 'business-user-management-group',
+		title: 'Management',
+		type: 'group',
+		icon: 'heroicons-outline:users',
+		auth: ['supervisor'],
+		children: [
+			{
 				id: 'business-user-management',
 				title: 'User Management',
 				type: 'item',
 				icon: 'heroicons-outline:user-group',
 				url: 'businesses/users',
 				auth: ['supervisor']
-			},
-			{
-				id: 'business-setup-config',
-				title: 'Setup Config',
-				type: 'item',
-				icon: 'heroicons-outline:cog-8-tooth',
-				url: 'businesses/setup-config'
 			}
 		]
 	}
